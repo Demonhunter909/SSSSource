@@ -1,0 +1,59 @@
+.indent
+{
+    margin-left: 200pt;
+    margin-right: 200pt;
+    padding-bottom: 0px;
+    padding-right: 0px;
+    border-radius: 0px;
+}
+h1
+{
+    margin-left: 200pt;
+    padding-top: 10px;
+    padding-bottom: 0px;
+    padding-right: 0px;
+    border-radius: 0px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+h4
+{
+    margin-left: 200pt;
+    padding-top: 10px;
+    padding-bottom: 0px;
+    padding-right: 0px;
+    border-radius: 0px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
+}
+p
+{
+    margin-left: 200pt;
+    margin-right: 200pt;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    border-radius: 0px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+.indent_img
+{
+    margin-top: 20px;
+    margin-left: 200pt;
+    margin-right: 200pt;
+    border: 2px solid grey;
+    border-radius: 8px;
+}
+body
+{
+    color: silver;
+    background-color: #800020;
+}
+.navbar
+{
+    background-color: silver;
+    padding: 20px;
+    text-align: center;
+}
+#bordered-image
+{
+    border: 8px solid black;
+    border-radius: 30px;
+}
