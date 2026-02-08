@@ -231,31 +231,30 @@ def index():
 
 @app.route("/articles")
 def articles():
-    return render_template("articles.html", files=files)
+    return render_template("articles.html")
 
 @app.route("/venom")
 def venom():
-    return render_template("venom.html", files=files)
+    return render_template("venom.html")
 
 @app.route("/talent")
 def talent():
-    return render_template("talent.html", files=files)
+    return render_template("talent.html")
 
 @app.route("/athletics")
 def athletics():
-    return render_template("athletics.html", files=files)
+    return render_template("athletics.html")
 
 @app.route("/entertainment")
 def entertainment():
-    return render_template("entertainment.html", files=files)
+    return render_template("entertainment.html")
 
 @app.route("/news")
 def news():
-    return render_template("news.html", files=files)
-
+    return render_template("news.html")
 @app.route("/features")
 def features():
-    return render_template("features.html", files=files)
+    return render_template("features.html")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
