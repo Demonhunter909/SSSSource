@@ -16,14 +16,22 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{ url_for('articles') }}">Articles</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="articlesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Articles
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="articlesDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('articles') }}">All Articles</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('athletics') }}">Athletics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('entertainment') }}">Entertainment</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('news') }}">News</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('features') }}">Features</a></li>
                     </li>
                     <li>
-                        <a class="nav-link" href="{{ url_for('venom_page') }}">Weekly Venom</a>
+                        <a class="nav-link" href="{{ url_for('venom') }}">Weekly Venom</a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="{{ url_for('talent_page') }}">Talent Gallery</a>
+                        <a class="nav-link" href="{{ url_for('talent') }}">Talent Gallery</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
@@ -32,13 +40,6 @@
                         <a class="nav-link dropdown-toggle" id="articlesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Articles
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="articlesDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('articles_page') }}">All Articles</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('athletics_page') }}">Athletics</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('entertainment_page') }}">Entertainment</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('news_page') }}">News</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('features_page') }}">Features</a></li>
-                        </ul>
                     </li>
                         <ul class="dropdown-menu" aria-labelledby="archiveDropdown">
                             <li><a class="dropdown-item" href="https://sites.google.com/view/thessssource-com/home?authuser=3">Google Site</a></li>
