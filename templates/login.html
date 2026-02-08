@@ -26,6 +26,7 @@
                             <li><a class="dropdown-item" href="{{ url_for('entertainment') }}">Entertainment</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('news') }}">News</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('features') }}">Features</a></li>
+                        </ul>
                     </li>
                     <li>
                         <a class="nav-link" href="{{ url_for('venom') }}">Weekly Venom</a>
@@ -36,16 +37,14 @@
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="articlesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Articles
+                        <a class="nav-link dropdown-toggle" id="archiveDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Archive
                         </a>
-                    </li>
                         <ul class="dropdown-menu" aria-labelledby="archiveDropdown">
                             <li><a class="dropdown-item" href="https://sites.google.com/view/thessssource-com/home?authuser=3">Google Site</a></li>
                             <li><a class="dropdown-item" href="https://thessssource.weebly.com/">Weebly Site</a></li>
                         </ul>
-                    </li>
+                    </li> 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Account
@@ -54,7 +53,7 @@
                             <li><a class="dropdown-item" href="{{ url_for('login') }}">Login</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('register') }}">Register</a></li>
                         </ul>
-                    </li>
+                    </li>                   
                 </ul>
             </div>
         </nav>
