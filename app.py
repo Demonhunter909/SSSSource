@@ -228,5 +228,34 @@ def index():
         return render_template("home.html", username=session.get("username"))
     return render_template("index.html")
 
+
+@app.route("/articles")
+def articles():
+    return render_template("articles.html", files=files)
+
+@app.route("/venom")
+def venom_page():
+    return render_template("venom.html", files=files)
+
+@app.route("/talent")
+def talent_page():
+    return render_template("talent.html", files=files)
+
+@app.route("/athletics")
+def athletics_page():
+    return render_template("athletics.html", files=files)
+
+@app.route("/entertainment")
+def entertainment_page():
+    return render_template("entertainment.html", files=files)
+
+@app.route("/news")
+def news_page():
+    return render_template("news.html", files=files)
+
+@app.route("/features")
+def features_page():
+    return render_template("features.html", files=files)
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
