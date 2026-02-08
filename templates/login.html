@@ -28,9 +28,18 @@
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="archiveDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Archive
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="articlesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Articles
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="articlesDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('articles') }}">All Articles</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('athletics') }}">Athletics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('entertainment') }}">Entertainment</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('news') }}">News</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('features') }}">Features</a></li>
+                        </ul>
+                    </li>
                         <ul class="dropdown-menu" aria-labelledby="archiveDropdown">
                             <li><a class="dropdown-item" href="https://sites.google.com/view/thessssource-com/home?authuser=3">Google Site</a></li>
                             <li><a class="dropdown-item" href="https://thessssource.weebly.com/">Weebly Site</a></li>

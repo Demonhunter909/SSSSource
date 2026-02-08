@@ -16,8 +16,17 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{ url_for('articles') }}">Articles</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="articlesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Articles
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="articlesDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('articles') }}">All Articles</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('athletics') }}">Athletics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('entertainment') }}">Entertainment</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('news') }}">News</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('features') }}">Features</a></li>
+                        </ul>
                     </li>
                     <li>
                         <a class="nav-link" href="{{ url_for('venom_page') }}">Weekly Venom</a>
