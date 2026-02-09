@@ -58,7 +58,7 @@ body
 {
     border: 8px solid black;
     border-radius: 30px;
-    height: 200px;
-    width: 100%;
+    height: fit-content;
+    width: 50%;
     object-fit: cover;
 }
