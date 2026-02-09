@@ -59,5 +59,7 @@ body
     border: 8px solid black;
     border-radius: 30px;
     width: fit-content;
-    height: auto;
+    height: fit-content;
+    max-height: 500px;
+    max-width: 500px;
 }
