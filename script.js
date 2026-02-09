@@ -1,4 +1,4 @@
-const images = ["ssssource.jpg", "ssssource2.jpg", "ssssource3.jpg", "ssssource4.jpg", "ssssource5.jpg"];
+const images = ["/images/ssssource.jpg", "/images/ssssource2.jpg", "/images/ssssource3.jpg", "/images/ssssource4.jpg", "/images/ssssource5.jpg"];
 let currentIndex = 0;
 
 function changeImage() {
