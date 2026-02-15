@@ -50,8 +50,12 @@ def init_db():
 
 @app.route("/init")
 def init_route():
-    init_db()
-    return "Database initialized successfully!"
+    try:
+        init_db()
+        return "Database initialized successfully!"
+    except Exception as e:
+        return f"Error: {e}", 500
+
 
 def login_required(f):
     @wraps(f)
