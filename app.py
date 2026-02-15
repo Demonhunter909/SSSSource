@@ -1,6 +1,5 @@
 import os
 import psycopg2
-import socket
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -13,7 +12,6 @@ app.secret_key = "your-secret-key-here"
 Session(app)
 
 def get_db():
-    os.environ["PGHOSTADDR"] = socket.gethostbyname(os.getenv("DB_HOST"))
     return psycopg2.connect(
         host=os.getenv("DB_HOST"),
         port="5432",
