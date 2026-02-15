@@ -17,7 +17,7 @@ def get_db():
         port="5432",
         database="postgres",
         user="postgres",
-        password=ps.getenv("DB_PASSWORD")
+        password=os.getenv("DB_PASSWORD")
     )
 
 def init_db():
