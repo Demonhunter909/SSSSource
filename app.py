@@ -13,11 +13,11 @@ Session(app)
 
 def get_db():
     return psycopg2.connect(
-        host="YOUR_HOST.supabase.co",
+        host=os.getenv("DB_HOST"),
         port="5432",
         database="postgres",
         user="postgres",
-        password="YOUR_PASSWORD"
+        password=ps.getenv("DB_PASSWORD")
     )
 
 def init_db():
