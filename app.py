@@ -48,7 +48,8 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db()
+@app.route("/init") 
+def init_route(): init_db() return "Database initialized successfully!"
 
 def login_required(f):
     @wraps(f)
@@ -220,4 +221,5 @@ def features():
     return render_template("features.html")
 
 if __name__ == "__main__":
+    init_db()
     app.run(debug=True, host="0.0.0.0", port=5000)
