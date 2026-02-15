@@ -48,8 +48,10 @@ def init_db():
     conn.commit()
     conn.close()
 
-@app.route("/init") 
-def init_route(): init_db() return "Database initialized successfully!"
+@app.route("/init")
+def init_route():
+    init_db()
+    return "Database initialized successfully!"
 
 def login_required(f):
     @wraps(f)
@@ -103,7 +105,6 @@ def register():
             return redirect("/register")
 
         hashed = generate_password_hash(password)
-
         parent_id = session.get("user_id")
 
         conn = get_db()
