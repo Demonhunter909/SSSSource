@@ -1,5 +1,6 @@
 import os
 import psycopg2
+import datetime
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -14,7 +15,7 @@ Session(app)
 def get_db():
     return psycopg2.connect(
         host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT","5432"),
+        port=os.getenv("DB_PORT", "5432"),
         database=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD")
@@ -28,9 +29,22 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             parent_id INTEGER,
-            max_children INTEGER DEFAULT 0
+            max_children INTEGER DEFAULT 0,
+            email_verified BOOLEAN DEFAULT FALSE,
+            admin_approved BOOLEAN DEFAULT FALSE
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS verification_tokens (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id),
+            token TEXT UNIQUE NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            type TEXT NOT NULL
         );
     """)
 
@@ -56,7 +70,6 @@ def init_route():
     except Exception as e:
         return f"Error: {e}", 500
 
-
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -78,12 +91,20 @@ def login():
 
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,))
+        cursor.execute("SELECT id, username, password, email_verified, admin_approved FROM users WHERE username = %s", (username,))
         row = cursor.fetchone()
         conn.close()
 
         if row is None or not check_password_hash(row[2], password):
             flash("Invalid username or password", "error")
+            return redirect("/login")
+
+        if not row[3]:
+            flash("Please verify your email first", "error")
+            return redirect("/login")
+
+        if not row[4]:
+            flash("Your account is awaiting admin approval", "error")
             return redirect("/login")
 
         session["user_id"] = row[0]
@@ -97,10 +118,11 @@ def login():
 def register():
     if request.method == "POST":
         username = request.form.get("username")
+        email = request.form.get("email")
         password = request.form.get("password")
         confirm = request.form.get("confirm_password")
 
-        if not username or not password or not confirm:
+        if not username or not email or not password or not confirm:
             flash("All fields required", "error")
             return redirect("/register")
 
@@ -114,44 +136,142 @@ def register():
         conn = get_db()
         cursor = conn.cursor()
 
-        # Check global max users
-        cursor.execute("SELECT value FROM site_settings WHERE key = 'max_users'")
-        max_users = int(cursor.fetchone()[0])
-
-        if max_users > 0:
-            cursor.execute("SELECT COUNT(*) FROM users")
-            if cursor.fetchone()[0] >= max_users:
-                conn.close()
-                flash("Site user limit reached", "error")
-                return redirect("/register")
-
-        # Check parent max_children
-        if parent_id:
-            cursor.execute("SELECT max_children FROM users WHERE id = %s", (parent_id,))
-            max_children = cursor.fetchone()[0]
-
-            cursor.execute("SELECT COUNT(*) FROM users WHERE parent_id = %s", (parent_id,))
-            if cursor.fetchone()[0] >= max_children:
-                conn.close()
-                flash("User creation limit reached for your account", "error")
-                return redirect("/register")
-
         try:
             cursor.execute("""
-                INSERT INTO users (username, password, parent_id)
-                VALUES (%s, %s, %s)
-            """, (username, hashed, parent_id))
-            conn.commit()
+                INSERT INTO users (username, email, password, parent_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id
+            """, (username, email, hashed, parent_id))
+            user_id = cursor.fetchone()[0]
         except psycopg2.Error:
-            flash("Username already exists", "error")
+            flash("Username or email already exists", "error")
             conn.close()
             return redirect("/register")
 
+        # Create verification token
+        from utils import generate_token, token_expiration
+        token = generate_token()
+
+        cursor.execute("""
+            INSERT INTO verification_tokens (user_id, token, expires_at, type)
+            VALUES (%s, %s, %s, 'email_verify')
+        """, (user_id, token, token_expiration()))
+
+        conn.commit()
         conn.close()
-        flash("Account created! Please log in.", "success")
+
+        # Send verification email
+        from email_service import send_email
+        send_email(
+            email,
+            "Verify Your Email",
+            f"""
+            <p>Click below to verify your email:</p>
+            <a href="https://thessssource.onrender.com/verify-email/{token}">
+                Verify Email
+            </a>
+            """
+        )
+
+        flash("Account created! Check your email to verify.", "success")
         return redirect("/login")
 
     return render_template("register.html")
+
+@app.route("/verify-email/<token>")
+def verify_email(token):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT user_id, expires_at FROM verification_tokens
+        WHERE token = %s AND type = 'email_verify'
+    """, (token,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return "Invalid or expired token", 400
+
+    user_id, expires_at = row
+
+    if expires_at < datetime.datetime.utcnow():
+        conn.close()
+        return "Token expired", 400
+
+    cursor.execute("UPDATE users SET email_verified = TRUE WHERE id = %s", (user_id,))
+
+    # Create admin approval token
+    from utils import generate_token, token_expiration
+    admin_token = generate_token()
+
+    cursor.execute("""
+        INSERT INTO verification_tokens (user_id, token, expires_at, type)
+        VALUES (%s, %s, %s, 'admin_approval')
+    """, (user_id, admin_token, token_expiration()))
+
+    conn.commit()
+    conn.close()
+
+    # Send admin approval email
+    from email_service import send_email
+    send_email(
+        "brandonbarbee512@gmail.com",
+        "New User Requires Approval",
+        f"""
+        <p>A user has verified their email and now requires your approval.</p>
+        <a href="https://thessssource.onrender.com/admin/approve/{admin_token}">Approve</a><br>
+        <a href="https://thessssource.onrender.com/admin/deny/{admin_token}">Deny and Remove</a>
+        """
+    )
+
+    return "Email verified! Waiting for admin approval."
+
+@app.route("/admin/approve/<token>")
+def admin_approve(token):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT user_id FROM verification_tokens
+        WHERE token = %s AND type = 'admin_approval'
+    """, (token,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return "Invalid token", 400
+
+    user_id = row[0]
+
+    cursor.execute("UPDATE users SET admin_approved = TRUE WHERE id = %s", (user_id,))
+    conn.commit()
+    conn.close()
+
+    return "User approved."
+
+@app.route("/admin/deny/<token>")
+def admin_deny(token):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT user_id FROM verification_tokens
+        WHERE token = %s AND type = 'admin_approval'
+    """, (token,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return "Invalid token", 400
+
+    user_id = row[0]
+
+    cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    conn.commit()
+    conn.close()
+
+    return "User denied and removed."
 
 @app.route("/logout")
 def logout():
