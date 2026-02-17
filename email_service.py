@@ -1,4 +1,5 @@
 import smtplib
+import os
 from email.mime.text import MIMEText
 
 SMTP_HOST = os.getenv("SMTP_HOST")
