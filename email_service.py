@@ -14,4 +14,4 @@ def send_email(to, subject, html):
     with smtplib.SMTP(SMTP_HOST, 587) as server:
         server.starttls()
         sever.login(SMTP_USER, SMTP_PASS)
-        server.sendmail(SMTP_USER, to msg.as_string())
+        server.sendmail(SMTP_USER, to, msg.as_string())
