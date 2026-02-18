@@ -1,18 +1,29 @@
-import smtplib
-import os
-from email.mime.text import MIMEText
+# email_service.py
 
-SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASS = os.getenv("SMTP_PASS")
+import os
+import requests
+
+KLAVIYO_API_KEY = os.getenv("KLAVIYO_API_KEY")
 
 def send_email(to, subject, html):
-    msg = MIMEText(html, "html")
-    msg["Subject"] = subject
-    msg["From"] = SMTP_USER
-    msg["To"] = to
+    url = "https://a.klaviyo.com/api/email-send"
 
-    with smtplib.SMTP(SMTP_HOST, 587) as server:
-        server.starttls()
-        sever.login(SMTP_USER, SMTP_PASS)
-        server.sendmail(SMTP_USER, to, msg.as_string())
+    headers = {
+        "Authorization": f"Klaviyo-API-Key {KLAVIYO_API_KEY}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    payload = {
+        "from_email": "brandonbarbee512@gmail.com",  # or your verified sender
+        "from_name": "The SSSSource",
+        "subject": subject,
+        "to": [{"email": to}],
+        "html": html
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    # Optional: print errors to Render logs
+    if response.status_code >= 300:
+        print("Klaviyo Email Error:", response.status_code, response.text)
