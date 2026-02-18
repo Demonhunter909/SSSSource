@@ -8,3 +8,10 @@ function changeImage() {
 }
 
 setInterval(changeImage, 10000);
+
+setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 1000);
+    });
+}, 5000);
