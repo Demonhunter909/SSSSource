@@ -11,18 +11,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-container">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
         <nav class="navbar sticky-top navbar-expand-lg">
             <a class=" navbar-brand" href="{{ url_for('index') }}"><b>The SSSSource</b></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle-navigation">
@@ -71,6 +59,17 @@
                 </ul>
             </div>
         </nav>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
         <img id="slideshow" src="/images/ssssource.jpg" alt="The SSSSource Logo" width="300" style="display: block; margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px;">
         <h1 style="text-align: center;">Welcome to the SSSSource!</h1>
         <h4 style="text-align: center;">Your source for all the news at VAAS!</h4>
