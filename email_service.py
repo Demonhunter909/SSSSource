@@ -15,13 +15,17 @@ def send_email(to, subject, html):
     }
 
     payload = {
-        "from_email": "brandonbarbee512@gmail.com",  # or your verified sender
+        "from_email": "brandonbarbee512@gmail.com",
         "from_name": "The SSSSource",
         "subject": subject,
         "to": [{"email": to}],
         "html": html
     }
 
+    # Make the API request
     response = requests.post(url, json=payload, headers=headers)
 
-print("KLAVIYO RESPONSE:", response.status_code, response.text)
+    # ⭐ THIS is where the log line must go ⭐
+    print("KLAVIYO RESPONSE:", response.status_code, response.text)
+
+    return response
