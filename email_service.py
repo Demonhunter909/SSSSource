@@ -1,5 +1,3 @@
-# email_service.py
-
 import os
 import requests
 
@@ -22,10 +20,8 @@ def send_email(to, subject, html):
         "html": html
     }
 
-    # Make the API request
     response = requests.post(url, json=payload, headers=headers)
 
-    # ⭐ THIS is where the log line must go ⭐
     print("KLAVIYO RESPONSE:", response.status_code, response.text)
 
     return response
