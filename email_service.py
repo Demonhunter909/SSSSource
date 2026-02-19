@@ -24,6 +24,4 @@ def send_email(to, subject, html):
 
     response = requests.post(url, json=payload, headers=headers)
 
-    # Optional: print errors to Render logs
-    if response.status_code >= 300:
-        print("Klaviyo Email Error:", response.status_code, response.text)
+print("KLAVIYO RESPONSE:", response.status_code, response.text)
