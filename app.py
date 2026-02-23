@@ -191,13 +191,13 @@ def verify_email(token):
 
     if not row:
         conn.close()
-        return "Invalid or expired token", 400
+        return render_template("register.html", message="Invalid or expired token"), 400
 
     user_id, expires_at = row
 
     if expires_at < datetime.datetime.utcnow():
         conn.close()
-        return "Token expired", 400
+        return render_template("register.html", message="Token expired"), 400
 
     cursor.execute("UPDATE users SET email_verified = TRUE WHERE id = %s", (user_id,))
 
@@ -225,7 +225,7 @@ def verify_email(token):
         """
     )
 
-    return "Email verified! Waiting for admin approval."
+    return render_template("register.html", message="Email verified! Waiting for admin approval.")
 
 @app.route("/admin/approve/<token>")
 def admin_approve(token):
@@ -240,7 +240,7 @@ def admin_approve(token):
 
     if not row:
         conn.close()
-        return "Invalid token", 400
+        return render_template("register.html", message="Invalid token"), 400
 
     user_id = row[0]
 
@@ -248,7 +248,7 @@ def admin_approve(token):
     conn.commit()
     conn.close()
 
-    return "User approved."
+    return render_template("register.html", message="User approved.")
 
 @app.route("/admin/deny/<token>")
 def admin_deny(token):
@@ -263,7 +263,7 @@ def admin_deny(token):
 
     if not row:
         conn.close()
-        return "Invalid token", 400
+        return render_template("register.html", message="Invalid token"), 400
 
     user_id = row[0]
 
@@ -271,7 +271,7 @@ def admin_deny(token):
     conn.commit()
     conn.close()
 
-    return "User denied and removed."
+    return render_template("register.html", message="User denied and removed.")
 
 @app.route("/logout")
 def logout():
