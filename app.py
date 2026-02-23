@@ -191,13 +191,15 @@ def verify_email(token):
 
     if not row:
         conn.close()
-        return render_template("register.html", message="Invalid or expired token"), 400
+        flash("Invalid or expired token", "error")
+        return redirect("/register")
 
     user_id, expires_at = row
 
     if expires_at < datetime.datetime.utcnow():
         conn.close()
-        return render_template("register.html", message="Token expired"), 400
+        flash("Token expired", "error")
+        return redirect("/register")
 
     cursor.execute("UPDATE users SET email_verified = TRUE WHERE id = %s", (user_id,))
 
@@ -225,7 +227,8 @@ def verify_email(token):
         """
     )
 
-    return render_template("register.html", message="Email verified! Waiting for admin approval.")
+    flash("Email verified! Waiting for admin approval.", "success")
+    return redirect("/register")
 
 @app.route("/admin/approve/<token>")
 def admin_approve(token):
@@ -240,7 +243,8 @@ def admin_approve(token):
 
     if not row:
         conn.close()
-        return render_template("register.html", message="Invalid token"), 400
+        flash("Invalid token", "error")
+        return redirect("/register")
 
     user_id = row[0]
 
@@ -248,7 +252,8 @@ def admin_approve(token):
     conn.commit()
     conn.close()
 
-    return render_template("register.html", message="User approved.")
+    flash("User approved! They can now log in.", "success")
+    return redirect("/login")
 
 @app.route("/admin/deny/<token>")
 def admin_deny(token):
@@ -263,7 +268,8 @@ def admin_deny(token):
 
     if not row:
         conn.close()
-        return render_template("register.html", message="Invalid token"), 400
+        flash("Invalid token", "error")
+        return redirect("/register")
 
     user_id = row[0]
 
@@ -271,7 +277,8 @@ def admin_deny(token):
     conn.commit()
     conn.close()
 
-    return render_template("register.html", message="User denied and removed.")
+    flash("User denied and removed.", "error")
+    return redirect("/register")
 
 @app.route("/logout")
 def logout():
