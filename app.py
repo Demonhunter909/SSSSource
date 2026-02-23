@@ -279,38 +279,6 @@ def logout():
     flash("You have been logged out", "success")
     return redirect("/")
 
-@app.route("/account/settings", methods=["GET", "POST"])
-@login_required
-def account_settings():
-    user_id = session["user_id"]
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    if request.method == "POST":
-        try:
-            new_max = int(request.form.get("max_users"))
-            if new_max < 0:
-                raise ValueError
-        except ValueError:
-            flash("Invalid value", "error")
-            conn.close()
-            return redirect("/account/settings")
-
-        cursor.execute("UPDATE site_settings SET value = %s WHERE key = 'max_users'", (str(new_max),))
-        conn.commit()
-        flash("Site user limit updated", "success")
-
-    cursor.execute("SELECT username FROM users WHERE id = %s", (user_id,))
-    username = cursor.fetchone()[0]
-
-    cursor.execute("SELECT value FROM site_settings WHERE key = 'max_users'")
-    max_users = int(cursor.fetchone()[0])
-
-    conn.close()
-
-    return render_template("account_settings.html", username=username, max_users=max_users)
-
 @app.route("/")
 def index():
     if session.get("user_id"):
