@@ -273,7 +273,12 @@ def admin_deny(token):
 
     user_id = row[0]
 
+    # Delete tokens first
+    cursor.execute("DELETE FROM verification_tokens WHERE user_id = %s", (user_id,))
+
+    # Now delete the user
     cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+
     conn.commit()
     conn.close()
 
