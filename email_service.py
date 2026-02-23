@@ -1,27 +1,33 @@
 import os
 import requests
 
-KLAVIYO_API_KEY = os.getenv("KLAVIYO_API_KEY")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 
 def send_email(to, subject, html):
-    url = "https://a.klaviyo.com/api/email-send"
+    print("SEND_EMAIL FUNCTION WAS CALLED (BREVO)")
+
+    url = "https://api.brevo.com/v3/smtp/email"
 
     headers = {
-        "Authorization": f"Klaviyo-API-Key {KLAVIYO_API_KEY}",
+        "api-key": BREVO_API_KEY,
         "Content-Type": "application/json",
         "Accept": "application/json"
     }
 
     payload = {
-        "from_email": "brandonbarbee512@gmail.com",
-        "from_name": "The SSSSource",
+        "sender": {
+            "email": "brandonbarbee512@gmail.com",
+            "name": "The SSSSource"
+        },
+        "to": [
+            {"email": to}
+        ],
         "subject": subject,
-        "to": [{"email": to}],
-        "html": html
+        "htmlContent": html
     }
 
     response = requests.post(url, json=payload, headers=headers)
 
-    print("KLAVIYO RESPONSE:", response.status_code, response.text)
+    print("BREVO RESPONSE:", response.status_code, response.text)
 
     return response
