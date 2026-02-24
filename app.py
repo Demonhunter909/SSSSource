@@ -8,10 +8,13 @@ from functools import wraps
 from datetime import timedelta
 
 app = Flask(__name__, static_folder='.', static_url_path='')
-app.config["SESSION_PERMANENT"] = True
+app.config["SESSION_PERMANENT"] = False
 app.permanent_session_lifetime = timedelta(days=7)
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_TYPE_DIR"] = "./flask_session"
 app.secret_key = "your-secret-key-here"
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "None"
 Session(app)
 
 def get_db():
