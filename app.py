@@ -2,7 +2,6 @@ import os
 import psycopg2
 import datetime
 from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from datetime import timedelta
@@ -10,12 +9,9 @@ from datetime import timedelta
 app = Flask(__name__, static_folder='.', static_url_path='')
 app.config["SESSION_PERMANENT"] = False
 app.permanent_session_lifetime = timedelta(days=7)
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_FILE_PATH"] = "./flask_session"
 app.secret_key = "your-secret-key-here"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
-Session(app)
 
 def get_db():
     return psycopg2.connect(
