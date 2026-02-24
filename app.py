@@ -11,7 +11,7 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 app.config["SESSION_PERMANENT"] = False
 app.permanent_session_lifetime = timedelta(days=7)
 app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_FILE_DIR"] = "./flask_session"
+app.config["SESSION_FILE_PATH"] = "./flask_session"
 app.secret_key = "your-secret-key-here"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
