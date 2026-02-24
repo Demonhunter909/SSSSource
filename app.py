@@ -3,26 +3,28 @@ import psycopg2
 import datetime
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from datetime import timedelta
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 # Database URI for sessions
 db_uri = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME')}"
 
+# SQLAlchemy config
+app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
 # Session configuration
 app.config["SESSION_TYPE"] = "sqlalchemy"
+app.config["SESSION_SQLALCHEMY"] = db
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_PERMANENT"] = False
 app.secret_key = "your-secret-key-here"
 
-# SQLAlchemy config
-engine = create_engine(db_uri, echo=False)
-app.config["SQLALCHEMY_ENGINE"] = engine
 Session(app)
 
 if app.debug:
