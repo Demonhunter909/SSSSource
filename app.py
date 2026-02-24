@@ -10,8 +10,12 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 app.config["SESSION_PERMANENT"] = False
 app.permanent_session_lifetime = timedelta(days=7)
 app.secret_key = "your-secret-key-here"
-app.config["SESSION_COOKIE_SECURE"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "None"
+if app.debug:
+    app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+else:
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
 
 def get_db():
     return psycopg2.connect(
@@ -526,4 +530,4 @@ def edit_url(url_id):
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
