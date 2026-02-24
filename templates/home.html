@@ -74,5 +74,20 @@
         <h4 style="text-align: center;">Welcome, {{ username }}!</h4>
         <hr class="solid">
         <p style="text-align: center;">Upload articles below.</p>
+        <form action="/upload" method="POST">
+            <label>URL:</label>
+            <input type="text" name="url" required>
+            <label>Choose Page:</label>
+            <select name="category" required>
+                <option value="athletics">Athletics</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="news">News</option>
+                <option value="features">Features</option>
+                <option value="articles">Articles</option>
+                <option value="talent">Talent</option>
+                <option value="venom">Venom</option>
+            </select>
+            <button type="submit">Upload</button>
+        </form>        
     </body>
 </html>

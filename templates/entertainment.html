@@ -75,6 +75,11 @@
         <h4 style="text-align: center;">Your place for all things entertaining!</h4>
         <hr class="solid">
         <p style="text-align: center;">More entertainment as it comes!</p>
+        <ul>
+            {% for row in urls %}
+                <li><a href="{{ row[0] }}" target="_blank">{{ row[0] }}</a></li>
+            {% endfor %}
+        </ul>  
         </div>
     </body>
 </html>

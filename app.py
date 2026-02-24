@@ -55,6 +55,17 @@ def init_db():
         );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS uploads (
+        id SERIAL PRIMARY KEY,
+        url TEXT NOT NULL,
+        category TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id INTEGER REFERENCES users(id)
+    );
+""")
+
+
     cursor.execute("SELECT value FROM site_settings WHERE key = 'max_users'")
     if cursor.fetchone() is None:
         cursor.execute("INSERT INTO site_settings (key, value) VALUES ('max_users', '0')")
@@ -299,31 +310,104 @@ def index():
 
 @app.route("/articles")
 def articles():
-    return render_template("articles.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'articles' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("articles.html", urls=urls)
+
 
 @app.route("/venom")
 def venom():
-    return render_template("venom.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'venom' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("venom.html", urls=urls)
+
 
 @app.route("/talent")
 def talent():
-    return render_template("talent.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'talent' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("talent.html", urls=urls)
 
 @app.route("/athletics")
 def athletics():
-    return render_template("athletics.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'athletics' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("athletics.html", urls=urls)
 
 @app.route("/entertainment")
 def entertainment():
-    return render_template("entertainment.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'entertainment' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("entertainment.html", urls=urls)
+
 
 @app.route("/news")
 def news():
-    return render_template("news.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'news' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("news.html", urls=urls)
+
 
 @app.route("/features")
 def features():
-    return render_template("features.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'features' ORDER BY created_at DESC")
+    urls = cursor.fetchall()
+    conn.close()
+
+    return render_template("features.html", urls=urls)
+
+
+@app.route("/upload", methods=["GET", "POST"])
+@login_required
+def upload():
+    if request.method == "POST":
+        url = request.form.get("url")
+        category = request.form.get("category")
+
+        if not url or not category:
+            flash("URL and category required", "error")
+            return redirect("/upload")
+
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO uploads (url, category, user_id)
+            VALUES (%s, %s, %s)
+        """, (url, category, session["user_id"]))
+        conn.commit()
+        conn.close()
+
+        flash("URL uploaded successfully!", "success")
+        return redirect(f"/{category}")
+
+    return render_template("home.html")
+
 
 if __name__ == "__main__":
     init_db()

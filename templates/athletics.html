@@ -75,6 +75,11 @@
         <h4 style="text-align: center;">Your source for all the sports info!</h4>
         <hr class="solid">
         <p style="text-align: center;">Be sure to go root on your VAAS Vipers!</p>
+        <ul>
+            {% for row in urls %}
+                <li><a href="{{ row[0] }}" target="_blank">{{ row[0] }}</a></li>
+            {% endfor %}
+        </ul>   
         </div>
     </body>
 </html>

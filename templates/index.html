@@ -75,6 +75,12 @@
         <h4 style="text-align: center;">Your source for all the news at VAAS!</h4>
         <hr class="solid">
         <p style="text-align: center;">Follow our <a href="https://www.instagram.com/vaas_vipers/">@vaas_vipers</a> Instagram for more updates and information on whats going on!</p>
+        <h2 style="text-align: center;">Headlines</h2>
+        <ul>
+            {% for row in urls %}
+                <li><a href="{{ row[0] }}" target="_blank">{{ row[0] }}</a></li>
+            {% endfor %}
+        </ul>
         </div>
     </body>
 </html>
