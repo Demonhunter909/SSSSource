@@ -84,8 +84,11 @@
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Login</button>
+                        <div>
+                            <input type="checkbox" name="remember" id="remember">
+                            <label for="remember">Remember Me</label>
+                        </div>
                     </form>
-
                     <p class="text-center mt-3">
                         Don't have an account? <a class="nav-link" href="{{ url_for('register') }}">Register here.</a>
                     </p>

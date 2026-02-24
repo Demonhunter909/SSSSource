@@ -5,9 +5,11 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
+from datetime import timedelta
 
 app = Flask(__name__, static_folder='.', static_url_path='')
-app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_PERMANENT"] = True
+app.permanent_session_lifetime = timedelta(days=7)
 app.config["SESSION_TYPE"] = "filesystem"
 app.secret_key = "your-secret-key-here"
 Session(app)
@@ -122,6 +124,10 @@ def login():
 
         session["user_id"] = row[0]
         session["username"] = row[1]
+        if request.form.get("remember"):
+            session.permanent = True
+        else:
+            session.permanent = False
         flash(f"Welcome, {username}!", "success")
         return redirect("/")
 
