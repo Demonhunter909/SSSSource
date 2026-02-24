@@ -173,7 +173,7 @@ def register():
             """
         )
 
-        flash("Account created! Check your email to verify.", "success")
+        flash("Account created! Check your email to verify. Please check your spam folder if you don't see the email.", "success")
         return redirect("/login")
 
     return render_template("register.html")
