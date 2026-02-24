@@ -91,7 +91,7 @@ def init_db():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
-            id VARCHAR(255) PRIMARY KEY,
+            session_id VARCHAR(255) PRIMARY KEY,
             session BYTEA NOT NULL,
             expiry TIMESTAMP NOT NULL
         );
