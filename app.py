@@ -312,7 +312,7 @@ def index():
 def articles():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'articles' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'articles' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
@@ -323,7 +323,7 @@ def articles():
 def venom():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'venom' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'venom' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
@@ -334,7 +334,7 @@ def venom():
 def talent():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'talent' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'talent' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
@@ -344,7 +344,7 @@ def talent():
 def athletics():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'athletics' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'athletics' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
@@ -354,7 +354,7 @@ def athletics():
 def entertainment():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'entertainment' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'entertainment' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
@@ -365,7 +365,7 @@ def entertainment():
 def news():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'news' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'news' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
@@ -376,7 +376,7 @@ def news():
 def features():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploaded_urls WHERE category = 'features' ORDER BY created_at DESC")
+    cursor.execute("SELECT url FROM uploads WHERE category = 'features' ORDER BY created_at DESC")
     urls = cursor.fetchall()
     conn.close()
 
