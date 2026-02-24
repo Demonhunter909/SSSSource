@@ -75,6 +75,10 @@
         <hr class="solid">
         <p style="text-align: center;">Upload articles below.</p>
         <form action="/upload" method="POST">
+            <label>Title:</label>
+            <input type="text" name="title" required>
+            <label>Description (optional):</label>
+            <textarea name="description"></textarea>
             <label>URL:</label>
             <input type="text" name="url" required>
             <label>Choose Page:</label>
@@ -89,5 +93,20 @@
             </select>
             <button type="submit">Upload</button>
         </form>        
+        <h2>All Uploaded Content</h2>
+
+        {% for item in uploads %}
+            <div class="url-card mb-3 p-3 border rounded">
+                <h4>{{ item[2] }}</h4> <!-- title -->
+                <p>{{ item[3] }}</p>   <!-- description -->
+                <p>
+                    <strong>URL:</strong>
+                    <a href="{{ item[1] }}" target="_blank">{{ item[1] }}</a>
+                </p>
+                <p><strong>Category:</strong> {{ item[4] }}</p>
+                <a href="/edit-url/{{ item[0] }}" class="btn btn-warning btn-sm">Edit</a>
+                <a href="/delete-url/{{ item[0] }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this link?')">Delete</a>
+            </div>
+        {% endfor %}
     </body>
 </html>

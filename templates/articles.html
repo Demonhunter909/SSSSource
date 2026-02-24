@@ -75,11 +75,13 @@
         <h4 style="text-align: center;">Read the latest articles from the SSSSource!</h4>
         <hr class="solid">
         <p style="text-align: center;">Check back soon for new articles.</p>
-        <ul>
-            {% for row in urls %}
-                <li><a href="{{ row[0] }}" target="_blank">{{ row[0] }}</a></li>
+            {% for item in urls %}
+                <div class="url-card">
+                    <h3>{{ item[2] }}</h3>
+                    <p>{{ item[3] }}</p>
+                    <a href="{{ item[1] }}" target="_blank">{{ item[1] }}</a>
+                </div>
             {% endfor %}
-        </ul>
         </div>
     </body>
 </html>

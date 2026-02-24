@@ -61,7 +61,9 @@ def init_db():
         url TEXT NOT NULL,
         category TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id INTEGER REFERENCES users(id)
+        user_id INTEGER REFERENCES users(id),
+        title TEXT,
+        description TEXT
     );
 """)
 
@@ -305,14 +307,31 @@ def logout():
 @app.route("/")
 def index():
     if session.get("user_id"):
-        return render_template("home.html", username=session["username"])
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, url, title, description, category
+            FROM uploads
+            ORDER BY created_at DESC
+        """)
+        uploads = cursor.fetchall()
+        conn.close()
+
+        return render_template("home.html", username=session["username"], uploads=uploads)
+
     return render_template("index.html")
+
 
 @app.route("/articles")
 def articles():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'articles' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'articles' 
+        ORDER BY created_at DESC
+        """)    
     urls = cursor.fetchall()
     conn.close()
 
@@ -323,7 +342,12 @@ def articles():
 def venom():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'venom' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'venom' 
+        ORDER BY created_at DESC
+        """)    
     urls = cursor.fetchall()
     conn.close()
 
@@ -334,7 +358,12 @@ def venom():
 def talent():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'talent' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'talent' 
+        ORDER BY created_at DESC
+        """)    
     urls = cursor.fetchall()
     conn.close()
 
@@ -344,7 +373,12 @@ def talent():
 def athletics():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'athletics' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'athletics' 
+        ORDER BY created_at DESC
+        """)    
     urls = cursor.fetchall()
     conn.close()
 
@@ -354,7 +388,12 @@ def athletics():
 def entertainment():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'entertainment' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'entertainment' 
+        ORDER BY created_at DESC
+        """)    
     urls = cursor.fetchall()
     conn.close()
 
@@ -365,7 +404,12 @@ def entertainment():
 def news():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'news' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'news' 
+        ORDER BY created_at DESC
+        """)    
     urls = cursor.fetchall()
     conn.close()
 
@@ -376,7 +420,12 @@ def news():
 def features():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT url FROM uploads WHERE category = 'features' ORDER BY created_at DESC")
+    cursor.execute("""
+        SELECT id, url, title, description
+        FROM uploads 
+        WHERE category = 'features' 
+        ORDER BY created_at DESC
+        """)
     urls = cursor.fetchall()
     conn.close()
 
@@ -387,19 +436,21 @@ def features():
 @login_required
 def upload():
     if request.method == "POST":
+        title = request.form.get("title")
+        description = request.form.get("description")
         url = request.form.get("url")
         category = request.form.get("category")
 
-        if not url or not category:
-            flash("URL and category required", "error")
+        if not url or not category or not title:
+            flash("Title, URL and category required", "error")
             return redirect("/upload")
 
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO uploads (url, category, user_id)
-            VALUES (%s, %s, %s)
-        """, (url, category, session["user_id"]))
+            INSERT INTO uploads (url, category, user_id, title, description)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (url, category, session["user_id"], title, description))
         conn.commit()
         conn.close()
 
@@ -407,6 +458,65 @@ def upload():
         return redirect(f"/{category}")
 
     return render_template("home.html")
+    
+@app.route("/delete-url/<int:url_id>")
+@login_required
+def delete_url(url_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Get category so we can redirect back to the correct page
+    cursor.execute("SELECT category FROM uploads WHERE id = %s", (url_id,))
+    row = cursor.fetchone()
+
+    if not row:
+        flash("URL not found", "error")
+        return redirect("/")
+
+    category = row[0]
+
+    cursor.execute("DELETE FROM uploads WHERE id = %s", (url_id,))
+    conn.commit()
+    conn.close()
+
+    flash("URL deleted", "success")
+    return redirect(f"/{category}")
+
+@app.route("/edit-url/<int:url_id>", methods=["GET", "POST"])
+@login_required
+def edit_url(url_id):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        title = request.form.get("title")
+        description = request.form.get("description")
+        url = request.form.get("url")
+
+        # Get category BEFORE updating
+        cursor.execute("SELECT category FROM uploads WHERE id = %s", (url_id,))
+        row = cursor.fetchone()
+        category = row[0]
+
+        # Update the record
+        cursor.execute("""
+            UPDATE uploads
+            SET title = %s, description = %s, url = %s
+            WHERE id = %s
+        """, (title, description, url, url_id))
+
+        conn.commit()
+        conn.close()
+
+        flash("URL updated!", "success")
+        return redirect(f"/{category}")
+
+    cursor.execute("SELECT title, description, url FROM uploads WHERE id = %s", (url_id,))
+    item = cursor.fetchone()
+    conn.close()
+
+    return render_template("edit_url.html", item=item, url_id=url_id)
+
 
 
 if __name__ == "__main__":
