@@ -22,7 +22,7 @@ db = SQLAlchemy(app)
 app.config["SESSION_TYPE"] = "sqlalchemy"
 app.config["SESSION_SQLALCHEMY"] = db
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
-app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_PERMANENT"] = True
 app.secret_key = "your-secret-key-here"
 
 Session(app)
@@ -152,10 +152,7 @@ def login():
 
         session["user_id"] = row[0]
         session["username"] = row[1]
-        if request.form.get("remember"):
-            session.permanent = True
-        else:
-            session.permanent = False
+        session.permanent = True
         flash(f"Welcome, {username}!", "success")
         return redirect("/")
 
