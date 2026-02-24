@@ -21,6 +21,7 @@ db = SQLAlchemy(app)
 # Session configuration
 app.config["SESSION_TYPE"] = "sqlalchemy"
 app.config["SESSION_SQLALCHEMY"] = db
+app.config["SESSION_SQLALCHEMY_TABLE"] = "sessions"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_PERMANENT"] = True
 app.secret_key = "your-secret-key-here"
@@ -105,14 +106,33 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Create sessions table on startup
+def create_sessions_table():
+    try:
+        with app.app_context():
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id SERIAL PRIMARY KEY,
+                    session_id VARCHAR(255) UNIQUE NOT NULL,
+                    data BYTEA NOT NULL,
+                    expiry TIMESTAMP NOT NULL
+                );
+            """)
+            conn.commit()
+            conn.close()
+    except Exception as e:
+        print(f"Error creating sessions table: {e}")
+
 @app.route("/init")
 def init_route():
     try:
         init_db()
+        create_sessions_table()
         return "Database initialized successfully!"
     except Exception as e:
         return f"Error: {e}", 500
-
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -552,4 +572,5 @@ def edit_url(url_id):
 
 if __name__ == "__main__":
     init_db()
+    create_sessions_table()
     app.run(debug=False, host="0.0.0.0", port=5000)
