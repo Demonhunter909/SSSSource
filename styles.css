@@ -198,3 +198,75 @@ p {
     margin-top: auto;
     padding-top: 15px;
 }
+
+/* Form Styling */
+form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 2px solid silver;
+    border-radius: 12px;
+}
+
+form label {
+    display: block;
+    color: silver;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+form label:first-of-type {
+    margin-top: 0;
+}
+
+form input[type="text"],
+form textarea,
+form select {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid silver;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: silver;
+    font-family: inherit;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+form input[type="text"]:focus,
+form textarea:focus,
+form select:focus {
+    outline: none;
+    border-color: #FFD700;
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+form button {
+    background-color: #FFD700;
+    color: #800020;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+form button:hover {
+    background-color: #FFC700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
