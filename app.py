@@ -11,21 +11,18 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 # Session configuration - use Flask's built-in secure cookies
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_NAME"] = "sessionid"
+app.config["SESSION_COOKIE_NAME"] = "session"
 app.config["SESSION_REFRESH_EACH_REQUEST"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+# Set to False for development over HTTP, True for HTTPS in production
+app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-production")
-
-if not app.debug:
-    app.config["SESSION_COOKIE_SECURE"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-else:
-    app.config["SESSION_COOKIE_SECURE"] = False
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 @app.before_request
 def make_session_permanent():
     """Make session permanent on every request"""
     session.permanent = True
+    app.logger.debug(f"Session data: {dict(session)}")
 
 def get_db():
     return psycopg2.connect(
@@ -325,6 +322,19 @@ def logout():
     session.clear()
     flash("You have been logged out", "success")
     return redirect("/")
+
+@app.route("/debug/session")
+def debug_session():
+    """Debug route to check session status - REMOVE IN PRODUCTION"""
+    return {
+        "session_data": dict(session),
+        "session.permanent": session.permanent,
+        "config_refresh": app.config.get("SESSION_REFRESH_EACH_REQUEST"),
+        "config_lifetime": str(app.config.get("PERMANENT_SESSION_LIFETIME")),
+        "config_secure": app.config.get("SESSION_COOKIE_SECURE"),
+        "config_httponly": app.config.get("SESSION_COOKIE_HTTPONLY"),
+        "config_samesite": app.config.get("SESSION_COOKIE_SAMESITE")
+    }
 
 @app.route("/")
 def index():
