@@ -147,7 +147,6 @@ p {
     margin-bottom: 12px;
     border-bottom: 2px solid silver;
     padding-bottom: 10px;
-    vertical-align: center;
 }
 
 .card-description {
@@ -157,16 +156,12 @@ p {
     line-height: 1.6;
     font-style: italic;
     min-height: 3.2rem;
-    display: flex;
-    align-items: flex-start;
 }
 
 .card-url {
     color: silver;
     margin-bottom: 12px;
     word-break: break-all;
-    display: flex;
-    align-items: center;
 }
 
 .card-link {
@@ -184,8 +179,6 @@ p {
 .card-category {
     color: silver;
     margin-bottom: 16px;
-    display: flex;
-    align-items: center;
 }
 
 .category-badge {
