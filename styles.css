@@ -116,3 +116,74 @@ p {
     color: #0c5460;
     border-left: 5px solid #17a2b8;
 }
+
+/* URL Card Styling */
+.url-card {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 2px solid silver !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    max-width: 800px;
+    margin: 20px auto !important;
+    transition: all 0.3s ease;
+}
+
+.url-card:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.card-title {
+    color: #FFD700;
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    border-bottom: 2px solid silver;
+    padding-bottom: 10px;
+}
+
+.card-description {
+    color: silver;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+.card-url {
+    color: silver;
+    margin-bottom: 12px;
+    word-break: break-all;
+}
+
+.card-link {
+    color: #87CEEB;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.card-link:hover {
+    color: #FFD700;
+    text-decoration: underline;
+}
+
+.card-category {
+    color: silver;
+    margin-bottom: 16px;
+}
+
+.category-badge {
+    background-color: #800020;
+    color: silver;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid silver;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}

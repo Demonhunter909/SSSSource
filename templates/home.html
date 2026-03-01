@@ -97,15 +97,17 @@
 
         {% for item in uploads %}
             <div class="url-card mb-3 p-3 border rounded">
-                <h4>{{ item[2] }}</h4> <!-- title -->
-                <p>{{ item[3] }}</p>   <!-- description -->
-                <p>
+                <h4 class="card-title">{{ item[2] }}</h4> <!-- title -->
+                <p class="card-description">{{ item[3] }}</p>   <!-- description -->
+                <p class="card-url">
                     <strong>URL:</strong>
-                    <a href="{{ item[1] }}" target="_blank">{{ item[1] }}</a>
+                    <a href="{{ item[1] }}" target="_blank" class="card-link">{{ item[1] }}</a>
                 </p>
-                <p><strong>Category:</strong> {{ item[4] }}</p>
-                <a href="/edit-url/{{ item[0] }}" class="btn btn-warning btn-sm">Edit</a>
-                <a href="/delete-url/{{ item[0] }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this link?')">Delete</a>
+                <p class="card-category"><strong>Category:</strong> <span class="category-badge">{{ item[4] }}</span></p>
+                <div class="card-actions">
+                    <a href="/edit-url/{{ item[0] }}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="/delete-url/{{ item[0] }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this link?')">Delete</a>
+                </div>
             </div>
         {% endfor %}
     </body>
