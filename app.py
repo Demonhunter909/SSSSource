@@ -11,7 +11,9 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 # Session configuration - use Flask's built-in secure cookies
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.secret_key = os.getenv("SECRET_KEY", "your-secret-key-here")
+app.config["SESSION_COOKIE_NAME"] = "sessionid"
+app.config["SESSION_REFRESH_EACH_REQUEST"] = True
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-production")
 
 if not app.debug:
     app.config["SESSION_COOKIE_SECURE"] = True
@@ -19,6 +21,11 @@ if not app.debug:
 else:
     app.config["SESSION_COOKIE_SECURE"] = False
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+@app.before_request
+def make_session_permanent():
+    """Make session permanent on every request"""
+    session.permanent = True
 
 def get_db():
     return psycopg2.connect(
@@ -137,7 +144,6 @@ def login():
 
         session["user_id"] = row[0]
         session["username"] = row[1]
-        session.permanent = True
         flash(f"Welcome, {username}!", "success")
         return redirect("/")
 
