@@ -336,7 +336,7 @@ def index():
         uploads = cursor.fetchall()
         conn.close()
 
-        return render_template("home.html", username=session["username"], uploads=uploads)
+        return render_template("adminpanel.html", username=session["username"], uploads=uploads)
 
     return render_template("index.html", username=session.get("username"))
 
@@ -486,7 +486,7 @@ def upload():
     uploads = cursor.fetchall()
     conn.close()
 
-    return render_template("home.html", username=session.get("username"), uploads=uploads)
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads)
     
 @app.route("/delete-url/<int:url_id>")
 @login_required

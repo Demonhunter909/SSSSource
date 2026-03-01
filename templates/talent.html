@@ -54,6 +54,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
                             {% if username %}
                                 <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout ({{ username }})</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('adminpanel') }}">Admin Panel</a></li>
                             {% else %}
                                 <li><a class="dropdown-item" href="{{ url_for('login') }}">Login</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('register') }}">Register</a></li>
