@@ -450,6 +450,20 @@ def features():
 
     return render_template("features.html", urls=urls, username=session.get("username"))
 
+@app.route("/adminpanel")
+@login_required
+def adminpanel():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, url, title, description, category
+        FROM uploads
+        ORDER BY created_at DESC
+    """)
+    uploads = cursor.fetchall()
+    conn.close()
+
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
