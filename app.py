@@ -144,7 +144,7 @@ def login():
         flash(f"Welcome, {username}!", "success")
         return redirect("/")
 
-    return render_template("login.html")
+    return render_template("login.html", username=session.get("username"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -208,7 +208,7 @@ def register():
         flash("Account created! Check your email to verify. Please check your spam folder if you don't see the email.", "success")
         return redirect("/login")
 
-    return render_template("register.html")
+    return render_template("register.html", username=session.get("username"))
 
 @app.route("/verify-email/<token>")
 def verify_email(token):
@@ -323,19 +323,6 @@ def logout():
     flash("You have been logged out", "success")
     return redirect("/")
 
-@app.route("/debug/session")
-def debug_session():
-    """Debug route to check session status - REMOVE IN PRODUCTION"""
-    return {
-        "session_data": dict(session),
-        "session.permanent": session.permanent,
-        "config_refresh": app.config.get("SESSION_REFRESH_EACH_REQUEST"),
-        "config_lifetime": str(app.config.get("PERMANENT_SESSION_LIFETIME")),
-        "config_secure": app.config.get("SESSION_COOKIE_SECURE"),
-        "config_httponly": app.config.get("SESSION_COOKIE_HTTPONLY"),
-        "config_samesite": app.config.get("SESSION_COOKIE_SAMESITE")
-    }
-
 @app.route("/")
 def index():
     if session.get("user_id"):
@@ -351,7 +338,7 @@ def index():
 
         return render_template("home.html", username=session["username"], uploads=uploads)
 
-    return render_template("index.html")
+    return render_template("index.html", username=session.get("username"))
 
 
 @app.route("/articles")
@@ -367,7 +354,7 @@ def articles():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("articles.html", urls=urls)
+    return render_template("articles.html", urls=urls, username=session.get("username"))
 
 
 @app.route("/venom")
@@ -383,7 +370,7 @@ def venom():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("venom.html", urls=urls)
+    return render_template("venom.html", urls=urls, username=session.get("username"))
 
 
 @app.route("/talent")
@@ -399,7 +386,7 @@ def talent():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("talent.html", urls=urls)
+    return render_template("talent.html", urls=urls, username=session.get("username"))
 
 @app.route("/athletics")
 def athletics():
@@ -414,7 +401,7 @@ def athletics():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("athletics.html", urls=urls)
+    return render_template("athletics.html", urls=urls, username=session.get("username"))
 
 @app.route("/entertainment")
 def entertainment():
@@ -429,7 +416,7 @@ def entertainment():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("entertainment.html", urls=urls)
+    return render_template("entertainment.html", urls=urls, username=session.get("username"))
 
 
 @app.route("/news")
@@ -445,7 +432,7 @@ def news():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("news.html", urls=urls)
+    return render_template("news.html", urls=urls, username=session.get("username"))
 
 
 @app.route("/features")
@@ -461,7 +448,7 @@ def features():
     urls = cursor.fetchall()
     conn.close()
 
-    return render_template("features.html", urls=urls)
+    return render_template("features.html", urls=urls, username=session.get("username"))
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -489,7 +476,17 @@ def upload():
         flash("URL uploaded successfully!", "success")
         return redirect(f"/{category}")
 
-    return render_template("home.html")
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, url, title, description, category
+        FROM uploads
+        ORDER BY created_at DESC
+    """)
+    uploads = cursor.fetchall()
+    conn.close()
+
+    return render_template("home.html", username=session.get("username"), uploads=uploads)
     
 @app.route("/delete-url/<int:url_id>")
 @login_required
@@ -547,7 +544,7 @@ def edit_url(url_id):
     item = cursor.fetchone()
     conn.close()
 
-    return render_template("edit_url.html", item=item, url_id=url_id)
+    return render_template("edit_url.html", item=item, url_id=url_id, username=session.get("username"))
 
 
 

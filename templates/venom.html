@@ -52,8 +52,12 @@
                             Account
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('login') }}">Login</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('register') }}">Register</a></li>
+                            {% if username %}
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout ({{ username }})</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="{{ url_for('login') }}">Login</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('register') }}">Register</a></li>
+                            {% endif %}
                         </ul>
                     </li>
                 </ul>
