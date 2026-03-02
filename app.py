@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import timedelta
 from uuid import uuid4
-import boto3
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -41,18 +40,13 @@ SLIDES_DIR = os.path.join(app.config["UPLOAD_FOLDER"], "slideshow")
 # create slideshow directory as well; the parent folder may already exist
 os.makedirs(SLIDES_DIR, exist_ok=True)
 
-# S3 configuration (used on Render to persist uploads)
-S3_BUCKET = os.getenv("S3_BUCKET")
-AWS_REGION = os.getenv("AWS_REGION")
-if S3_BUCKET:
-    s3 = boto3.client(
-        "s3",
-        region_name=AWS_REGION,
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-    )
-else:
-    s3 = None
+# No external storage required when using a Render persistent disk.
+# All files are saved locally under UPLOAD_FOLDER/slideshow.  The
+# `UPLOAD_FOLDER` variable is configured earlier to point at `/mnt/data`
+# when running on Render.
+#
+# Storing on disk keeps the implementation simple and avoids additional
+dependencies.
 
 @app.before_request
 def make_session_permanent():
@@ -631,26 +625,10 @@ def upload_slide():
         flash("No file uploaded", "error")
         return redirect("/adminpanel")
     fname = secure_filename(file.filename)
-    # If S3 configured use it, otherwise save locally to upload folder (could be persistent if Render disk mounted)
-    db_filename = fname
-    if s3 and S3_BUCKET:
-        key = f"slideshow/{int(time.time())}_{uuid4().hex}_{fname}"
-        try:
-            s3.upload_fileobj(
-                file,
-                S3_BUCKET,
-                key,
-                ExtraArgs={"ACL": "public-read", "ContentType": file.content_type or "image/jpeg"},
-            )
-        except Exception as e:
-            app.logger.error(f"S3 upload failed: {e}")
-            flash("Failed to upload slide to storage", "error")
-            return redirect("/adminpanel")
-        db_filename = key
-    else:
-        # local storage; name with timestamp to avoid collisions
-        db_filename = f"{int(time.time())}_{fname}"
-        file.save(os.path.join(SLIDES_DIR, db_filename))
+    # local storage on the persistent disk; prefix with timestamp to prevent
+    # collisions so the database row can be used as a lookup key directly.
+    db_filename = f"{int(time.time())}_{fname}"
+    file.save(os.path.join(SLIDES_DIR, db_filename))
 
     conn = get_db()
     cur = conn.cursor()
@@ -668,31 +646,12 @@ def slideshow_images():
     rows = cur.fetchall()
     conn.close()
 
-    bucket = S3_BUCKET
-    region = AWS_REGION
     urls = []
-    for r in rows:
-        fn = r[0]
+    for (fn,) in rows:
         if not fn:
             continue
-        # if stored as full URL already
-        if fn.startswith("http://") or fn.startswith("https://"):
-            urls.append(fn)
-            continue
-
-        # If key already contains path (slideshow/...), assume S3 key
-        if fn.startswith("slideshow/") and bucket and region:
-            urls.append(f"https://{bucket}.s3.{region}.amazonaws.com/{fn}")
-            continue
-
-        # If no S3 configured but file stored locally
-        if not bucket:
-            # serve via uploaded_file route from uploads/slideshow/<fn>
-            urls.append(url_for("uploaded_file", filename=f"slideshow/{fn}"))
-            continue
-
-        # default: assume filename stored without prefix; build S3 key under slideshow/
-        urls.append(f"https://{bucket}.s3.{region}.amazonaws.com/slideshow/{fn}")
+        # always serve via the local file endpoint
+        urls.append(url_for("uploaded_file", filename=f"slideshow/{fn}"))
 
     return jsonify(urls)
 
@@ -705,22 +664,13 @@ def delete_slide(slide_id):
     row = cur.fetchone()
     if row:
         fn = row[0]
-        # attempt local delete (may not exist on Render)
+        # local delete
         try:
             local_path = os.path.join(SLIDES_DIR, fn)
             if os.path.exists(local_path):
                 os.remove(local_path)
         except OSError:
             pass
-
-        # attempt S3 delete if configured
-        if s3 and S3_BUCKET:
-            # determine S3 key
-            key = fn if fn.startswith("slideshow/") else f"slideshow/{fn}"
-            try:
-                s3.delete_object(Bucket=S3_BUCKET, Key=key)
-            except Exception as e:
-                app.logger.debug(f"S3 delete failed for {key}: {e}")
 
         cur.execute("DELETE FROM slideshow WHERE id = %s", (slide_id,))
         conn.commit()

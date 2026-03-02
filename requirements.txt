@@ -3,4 +3,3 @@ psycopg2-binary==2.9.11
 Werkzeug==3.0.1
 python-dotenv==1.0.1
 requests==2.32.5
-boto3
