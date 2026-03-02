@@ -22,12 +22,23 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-production")
 
-# Configure upload folder
-UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+# Configure upload folder (allow override for Render persistent disk)
+# Render mounts persistent disks at /mnt/data by default. If the application
+# is running on Render and the UPLOAD_FOLDER environment variable isn’t set,
+# default to using a subdirectory of that mount point so files survive restarts.
+render_default = None
+if not os.getenv("UPLOAD_FOLDER") and os.getenv("RENDER_INTERNAL_HOSTNAME"):
+    # service is running on Render; use the standard mount location
+    render_default = os.path.join("/mnt/data", "uploads")
+
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", render_default or os.path.join(os.getcwd(), "uploads"))
+# ensure the directory exists before Flask tries to write into it
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.logger.info(f"Using upload folder: {UPLOAD_FOLDER}")
 
 SLIDES_DIR = os.path.join(app.config["UPLOAD_FOLDER"], "slideshow")
+# create slideshow directory as well; the parent folder may already exist
 os.makedirs(SLIDES_DIR, exist_ok=True)
 
 # S3 configuration (used on Render to persist uploads)
@@ -620,9 +631,10 @@ def upload_slide():
         flash("No file uploaded", "error")
         return redirect("/adminpanel")
     fname = secure_filename(file.filename)
-    key = f"slideshow/{int(time.time())}_{uuid4().hex}_{fname}"
-
+    # If S3 configured use it, otherwise save locally to upload folder (could be persistent if Render disk mounted)
+    db_filename = fname
     if s3 and S3_BUCKET:
+        key = f"slideshow/{int(time.time())}_{uuid4().hex}_{fname}"
         try:
             s3.upload_fileobj(
                 file,
@@ -636,7 +648,7 @@ def upload_slide():
             return redirect("/adminpanel")
         db_filename = key
     else:
-        # fallback to local storage (not persistent on Render)
+        # local storage; name with timestamp to avoid collisions
         db_filename = f"{int(time.time())}_{fname}"
         file.save(os.path.join(SLIDES_DIR, db_filename))
 
