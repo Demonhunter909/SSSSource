@@ -104,7 +104,6 @@ def init_db():
         CREATE TABLE IF NOT EXISTS slideshow (
             id SERIAL PRIMARY KEY,
             filename TEXT NOT NULL,
-            position INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
@@ -359,7 +358,7 @@ def index():
     if session.get("user_id"):
         conn2 = get_db()
         cur2 = conn2.cursor()
-        cur2.execute("SELECT id, filename FROM slideshow ORDER BY position")
+        cur2.execute("SELECT id, filename FROM slideshow")
         slides = cur2.fetchall()
         conn2.close()
         return render_template("adminpanel.html", username=session["username"], uploads=uploads, slides=slides)
@@ -487,9 +486,11 @@ def adminpanel():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
+    cursor.execute("SELECT id, filename FROM slideshow")
+    slides = cursor.fetchall()
     conn.close()
 
-    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads)
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, slides=slides)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
@@ -529,7 +530,7 @@ def upload():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
-    cursor.execute("SELECT id, filename FROM slideshow ORDER BY position")
+    cursor.execute("SELECT id, filename FROM slideshow")
     slides = cursor.fetchall()
     conn.close()
 
@@ -610,9 +611,7 @@ def upload_slide():
 
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT COALESCE(MAX(position), -1) FROM slideshow")
-    pos = cur.fetchone()[0] + 1
-    cur.execute("INSERT INTO slideshow (filename, position) VALUES (%s, %s)", (fname, pos))
+    cur.execute("INSERT INTO slideshow (filename) VALUES (%s)", (fname,))
     conn.commit()
     conn.close()
     flash("Slide uploaded!", "success")
@@ -622,34 +621,10 @@ def upload_slide():
 def slideshow_images():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT filename FROM slideshow ORDER BY position")
+    cur.execute("SELECT filename FROM slideshow")
     rows = cur.fetchall()
     conn.close()
     return jsonify([url_for("uploaded_file", filename=f"slideshow/{r[0]}") for r in rows])
-
-@app.route("/admin/slideshow/move/<int:sid>/<dir>", methods=["POST"])
-@login_required
-def move_slide(sid, dir):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT position FROM slideshow WHERE id = %s", (sid,))
-    row = cur.fetchone()
-    if not row:
-        conn.close()
-        return redirect("/adminpanel")
-    pos = row[0]
-    if dir == "up":
-        cur.execute("SELECT id FROM slideshow WHERE position < %s ORDER BY position DESC LIMIT 1", (pos,))
-    else:
-        cur.execute("SELECT id FROM slideshow WHERE position > %s ORDER BY position LIMIT 1", (pos,))
-    swap = cur.fetchone()
-    if swap:
-        new_pos = pos - 1 if dir == "up" else pos + 1
-        cur.execute("UPDATE slideshow SET position = %s WHERE id = %s", (pos, swap[0]))
-        cur.execute("UPDATE slideshow SET position = %s WHERE id = %s", (new_pos, sid))
-        conn.commit()
-    conn.close()
-    return redirect("/adminpanel")
 
 @app.route("/admin/delete-slide/<int:slide_id>", methods=["POST"])
 @login_required
