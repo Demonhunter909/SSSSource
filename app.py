@@ -23,8 +23,31 @@ render_default = None
 if not os.getenv("UPLOAD_FOLDER") and os.getenv("RENDER_INTERNAL_HOSTNAME"):
     render_default = os.path.join("/mnt/data", "uploads")
 
+# resolve upload folder path
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", render_default or os.path.join(os.getcwd(), "uploads"))
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# if a user accidentally pointed at the disk root (common when mounting /mnt/data),
+# append "uploads" so we avoid permission errors creating the base directory.
+if os.path.abspath(UPLOAD_FOLDER) in ("/mnt/data", "/mnt/data/"):
+    UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "uploads")
+
+# attempt to create the directory tree. if the root itself isn't writable (e.g.
+# someone specified "/mnt/data"), fall back to a subdirectory and log a warning.
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except PermissionError:
+    # try using a subfolder on the same filesystem
+    alt = os.path.join(UPLOAD_FOLDER, "uploads")
+    try:
+        os.makedirs(alt, exist_ok=True)
+        UPLOAD_FOLDER = alt
+        app.logger.warning(f"Permission denied creating {UPLOAD_FOLDER}; switched to {alt}")
+    except Exception as e:
+        # give up and re‑raise; the application cannot proceed without a writable
+        # upload location
+        app.logger.error(f"Unable to create upload folder: {e}")
+        raise
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.logger.info(f"Using upload folder: {UPLOAD_FOLDER}")
 
