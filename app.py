@@ -332,21 +332,6 @@ def logout():
 
 @app.route("/")
 def index():
-    if session.get("user_id"):
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, url, title, description, category
-            FROM uploads
-            ORDER BY created_at DESC
-        """)
-        uploads = cursor.fetchall()
-        conn.close()
-
-        return render_template("adminpanel.html", username=session["username"], uploads=uploads)
-
-@app.route("/")
-def index():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -357,6 +342,9 @@ def index():
     uploads = cursor.fetchall()
     conn.close()
 
+    if session.get("user_id"):
+        return render_template("adminpanel.html", username=session["username"], uploads=uploads)
+    
     return render_template("index.html", uploads=uploads, username=session.get("username"))
 
 
