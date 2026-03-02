@@ -80,6 +80,7 @@
         <h4 style="text-align: center;">Your source for all the sports info!</h4>
         <hr class="solid">
         <p style="text-align: center;">Be sure to go root on your VAAS Vipers!</p>
+        {% for item in urls %}
             <div class="url-card mb-3 p-3 border rounded">
                 <p class="card-title">{{ item[2] }}</p> 
                 <p class="card-description">{{ item[3] }}</p>   
@@ -97,6 +98,6 @@
                         No cover image
                     {% endif %}
                 </p>  
-        </div>
-    </body>
+            </div>
+        {% endfor %}
 </html>
