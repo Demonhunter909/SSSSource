@@ -345,7 +345,19 @@ def index():
 
         return render_template("adminpanel.html", username=session["username"], uploads=uploads)
 
-    return render_template("index.html", username=session.get("username"))
+@app.route("/")
+def index():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, url, title, description, category, cover_image
+        FROM uploads
+        ORDER BY created_at DESC
+    """)
+    uploads = cursor.fetchall()
+    conn.close()
+
+    return render_template("index.html", uploads=uploads, username=session.get("username"))
 
 
 @app.route("/articles")
@@ -353,7 +365,7 @@ def articles():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'articles' 
         ORDER BY created_at DESC
@@ -369,7 +381,7 @@ def venom():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'venom' 
         ORDER BY created_at DESC
@@ -385,7 +397,7 @@ def talent():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'talent' 
         ORDER BY created_at DESC
@@ -400,7 +412,7 @@ def athletics():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'athletics' 
         ORDER BY created_at DESC
@@ -415,7 +427,7 @@ def entertainment():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'entertainment' 
         ORDER BY created_at DESC
@@ -431,7 +443,7 @@ def news():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'news' 
         ORDER BY created_at DESC
@@ -447,7 +459,7 @@ def features():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description
+        SELECT id, url, title, description, category, cover_image
         FROM uploads 
         WHERE category = 'features' 
         ORDER BY created_at DESC

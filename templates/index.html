@@ -81,6 +81,7 @@
         <hr class="solid">
         <p style="text-align: center;">Follow our <a href="https://www.instagram.com/vaas_vipers/">@vaas_vipers</a> Instagram for more updates and information on whats going on!</p>
         <h2 style="text-align: center;">Headlines</h2>
+        {% for item in uploads %}
             <div class="url-card mb-3 p-3 border rounded">
                 <p class="card-title">{{ item[2] }}</p> 
                 <p class="card-description">{{ item[3] }}</p>   
@@ -98,6 +99,7 @@
                         No cover image
                     {% endif %}
                 </p>
-        </div>
+            </div>
+        {% endfor %}
     </body>
 </html>
