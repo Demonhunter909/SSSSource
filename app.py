@@ -11,45 +11,20 @@ from uuid import uuid4
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
+# Session configuration - use Flask's built-in secure cookies
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_NAME"] = "session"
 app.config["SESSION_REFRESH_EACH_REQUEST"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+# Set to False for development over HTTP, True for HTTPS in production
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-production")
 
-render_default = None
-if not os.getenv("UPLOAD_FOLDER") and os.getenv("RENDER_INTERNAL_HOSTNAME"):
-    render_default = os.path.join("/mnt/data", "uploads")
-
-# resolve upload folder path
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", render_default or os.path.join(os.getcwd(), "uploads"))
-
-# if a user accidentally pointed at the disk root (common when mounting /mnt/data),
-# append "uploads" so we avoid permission errors creating the base directory.
-if os.path.abspath(UPLOAD_FOLDER) in ("/mnt/data", "/mnt/data/"):
-    UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "uploads")
-
-# attempt to create the directory tree. if the root itself isn't writable (e.g.
-# someone specified "/mnt/data"), fall back to a subdirectory and log a warning.
-try:
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-except PermissionError:
-    # try using a subfolder on the same filesystem
-    alt = os.path.join(UPLOAD_FOLDER, "uploads")
-    try:
-        os.makedirs(alt, exist_ok=True)
-        UPLOAD_FOLDER = alt
-        app.logger.warning(f"Permission denied creating {UPLOAD_FOLDER}; switched to {alt}")
-    except Exception as e:
-        # give up and re‑raise; the application cannot proceed without a writable
-        # upload location
-        app.logger.error(f"Unable to create upload folder: {e}")
-        raise
-
+# Configure upload folder
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.logger.info(f"Using upload folder: {UPLOAD_FOLDER}")
 
 SLIDES_DIR = os.path.join(app.config["UPLOAD_FOLDER"], "slideshow")
 os.makedirs(SLIDES_DIR, exist_ok=True)
@@ -129,6 +104,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS slideshow (
             id SERIAL PRIMARY KEY,
             filename TEXT NOT NULL,
+            position INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
@@ -383,7 +359,7 @@ def index():
     if session.get("user_id"):
         conn2 = get_db()
         cur2 = conn2.cursor()
-        cur2.execute("SELECT id, filename FROM slideshow")
+        cur2.execute("SELECT id, filename FROM slideshow ORDER BY position")
         slides = cur2.fetchall()
         conn2.close()
         return render_template("adminpanel.html", username=session["username"], uploads=uploads, slides=slides)
@@ -511,11 +487,9 @@ def adminpanel():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
-    cursor.execute("SELECT id, filename FROM slideshow")
-    slides = cursor.fetchall()
     conn.close()
 
-    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, slides=slides)
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
@@ -555,7 +529,7 @@ def upload():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
-    cursor.execute("SELECT id, filename FROM slideshow")
+    cursor.execute("SELECT id, filename FROM slideshow ORDER BY position")
     slides = cursor.fetchall()
     conn.close()
 
@@ -630,15 +604,15 @@ def upload_slide():
     if not file:
         flash("No file uploaded", "error")
         return redirect("/adminpanel")
-    fname = secure_filename(file.filename)
-    # local storage on the persistent disk; prefix with timestamp to prevent
-    # collisions so the database row can be used as a lookup key directly.
-    db_filename = f"{int(time.time())}_{fname}"
-    file.save(os.path.join(SLIDES_DIR, db_filename))
+    
+    fname = f"{int(time.time())}_{secure_filename(file.filename)}"
+    file.save(os.path.join(SLIDES_DIR, fname))
 
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("INSERT INTO slideshow (filename) VALUES (%s)", (db_filename,))
+    cur.execute("SELECT COALESCE(MAX(position), -1) FROM slideshow")
+    pos = cur.fetchone()[0] + 1
+    cur.execute("INSERT INTO slideshow (filename, position) VALUES (%s, %s)", (fname, pos))
     conn.commit()
     conn.close()
     flash("Slide uploaded!", "success")
@@ -648,18 +622,34 @@ def upload_slide():
 def slideshow_images():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT filename FROM slideshow")
+    cur.execute("SELECT filename FROM slideshow ORDER BY position")
     rows = cur.fetchall()
     conn.close()
+    return jsonify([url_for("uploaded_file", filename=f"slideshow/{r[0]}") for r in rows])
 
-    urls = []
-    for (fn,) in rows:
-        if not fn:
-            continue
-        # always serve via the local file endpoint
-        urls.append(url_for("uploaded_file", filename=f"slideshow/{fn}"))
-
-    return jsonify(urls)
+@app.route("/admin/slideshow/move/<int:sid>/<dir>", methods=["POST"])
+@login_required
+def move_slide(sid, dir):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT position FROM slideshow WHERE id = %s", (sid,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return redirect("/adminpanel")
+    pos = row[0]
+    if dir == "up":
+        cur.execute("SELECT id FROM slideshow WHERE position < %s ORDER BY position DESC LIMIT 1", (pos,))
+    else:
+        cur.execute("SELECT id FROM slideshow WHERE position > %s ORDER BY position LIMIT 1", (pos,))
+    swap = cur.fetchone()
+    if swap:
+        new_pos = pos - 1 if dir == "up" else pos + 1
+        cur.execute("UPDATE slideshow SET position = %s WHERE id = %s", (pos, swap[0]))
+        cur.execute("UPDATE slideshow SET position = %s WHERE id = %s", (new_pos, sid))
+        conn.commit()
+    conn.close()
+    return redirect("/adminpanel")
 
 @app.route("/admin/delete-slide/<int:slide_id>", methods=["POST"])
 @login_required
@@ -669,15 +659,10 @@ def delete_slide(slide_id):
     cur.execute("SELECT filename FROM slideshow WHERE id = %s", (slide_id,))
     row = cur.fetchone()
     if row:
-        fn = row[0]
-        # local delete
         try:
-            local_path = os.path.join(SLIDES_DIR, fn)
-            if os.path.exists(local_path):
-                os.remove(local_path)
+            os.remove(os.path.join(SLIDES_DIR, row[0]))
         except OSError:
             pass
-
         cur.execute("DELETE FROM slideshow WHERE id = %s", (slide_id,))
         conn.commit()
     conn.close()
