@@ -96,6 +96,27 @@
             <input type="file" name="cover_image" accept="image/*" required>
             <button type="submit">Upload</button>
         </form>        
+        <h2>Slideshow Management</h2>
+        <form action="/admin/slideshow" method="POST" enctype="multipart/form-data">
+            <label>Upload Slide:</label>
+            <input type="file" name="slide" accept="image/*" required>
+            <button type="submit">Add Slide</button>
+        </form>
+        {% for slide in slides %}
+            <div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                <img src="{{ url_for('uploaded_file', filename='slideshow/' ~ slide[1]) }}" width="100" style="margin-right: 10px;">
+                <form action="/admin/slideshow/move/{{ slide[0] }}/up" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm">↑</button>
+                </form>
+                <form action="/admin/slideshow/move/{{ slide[0] }}/down" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm">↓</button>
+                </form>
+                <form action="/admin/delete-slide/{{ slide[0] }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this slide?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </div>
+        {% endfor %}
+        <hr class="solid">
         <h2>All Uploaded Content</h2>
 
         {% for item in uploads %}

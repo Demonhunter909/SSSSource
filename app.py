@@ -1,11 +1,13 @@
 import os
 import psycopg2
 import datetime
-from flask import Flask, flash, redirect, render_template, request, session, send_from_directory
+import time
+from flask import Flask, flash, redirect, render_template, request, session, send_from_directory, url_for, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import timedelta
+from uuid import uuid4
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -23,6 +25,9 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-producti
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+SLIDES_DIR = os.path.join(app.config["UPLOAD_FOLDER"], "slideshow")
+os.makedirs(SLIDES_DIR, exist_ok=True)
 
 @app.before_request
 def make_session_permanent():
@@ -92,6 +97,15 @@ def init_db():
             session_id VARCHAR(255) UNIQUE NOT NULL,
             data BYTEA NOT NULL,
             expiry TIMESTAMP NOT NULL
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS slideshow (
+            id SERIAL PRIMARY KEY,
+            filename TEXT NOT NULL,
+            position INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
 
@@ -343,7 +357,12 @@ def index():
     conn.close()
 
     if session.get("user_id"):
-        return render_template("adminpanel.html", username=session["username"], uploads=uploads)
+        conn2 = get_db()
+        cur2 = conn2.cursor()
+        cur2.execute("SELECT id, filename FROM slideshow ORDER BY position")
+        slides = cur2.fetchall()
+        conn2.close()
+        return render_template("adminpanel.html", username=session["username"], uploads=uploads, slides=slides)
     
     return render_template("index.html", uploads=uploads, username=session.get("username"))
 
@@ -510,9 +529,11 @@ def upload():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
+    cursor.execute("SELECT id, filename FROM slideshow ORDER BY position")
+    slides = cursor.fetchall()
     conn.close()
 
-    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads)
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, slides=slides)
     
 @app.route("/delete-url/<int:url_id>")
 @login_required
@@ -575,6 +596,78 @@ def edit_url(url_id):
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+@app.route("/admin/slideshow", methods=["POST"])
+@login_required
+def upload_slide():
+    file = request.files.get("slide")
+    if not file:
+        flash("No file uploaded", "error")
+        return redirect("/adminpanel")
+    
+    fname = f"{int(time.time())}_{secure_filename(file.filename)}"
+    file.save(os.path.join(SLIDES_DIR, fname))
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT COALESCE(MAX(position), -1) FROM slideshow")
+    pos = cur.fetchone()[0] + 1
+    cur.execute("INSERT INTO slideshow (filename, position) VALUES (%s, %s)", (fname, pos))
+    conn.commit()
+    conn.close()
+    flash("Slide uploaded!", "success")
+    return redirect("/adminpanel")
+
+@app.route("/slideshow-images")
+def slideshow_images():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT filename FROM slideshow ORDER BY position")
+    rows = cur.fetchall()
+    conn.close()
+    return jsonify([url_for("uploaded_file", filename=f"slideshow/{r[0]}") for r in rows])
+
+@app.route("/admin/slideshow/move/<int:sid>/<dir>", methods=["POST"])
+@login_required
+def move_slide(sid, dir):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT position FROM slideshow WHERE id = %s", (sid,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return redirect("/adminpanel")
+    pos = row[0]
+    if dir == "up":
+        cur.execute("SELECT id FROM slideshow WHERE position < %s ORDER BY position DESC LIMIT 1", (pos,))
+    else:
+        cur.execute("SELECT id FROM slideshow WHERE position > %s ORDER BY position LIMIT 1", (pos,))
+    swap = cur.fetchone()
+    if swap:
+        new_pos = pos - 1 if dir == "up" else pos + 1
+        cur.execute("UPDATE slideshow SET position = %s WHERE id = %s", (pos, swap[0]))
+        cur.execute("UPDATE slideshow SET position = %s WHERE id = %s", (new_pos, sid))
+        conn.commit()
+    conn.close()
+    return redirect("/adminpanel")
+
+@app.route("/admin/delete-slide/<int:slide_id>", methods=["POST"])
+@login_required
+def delete_slide(slide_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT filename FROM slideshow WHERE id = %s", (slide_id,))
+    row = cur.fetchone()
+    if row:
+        try:
+            os.remove(os.path.join(SLIDES_DIR, row[0]))
+        except OSError:
+            pass
+        cur.execute("DELETE FROM slideshow WHERE id = %s", (slide_id,))
+        conn.commit()
+    conn.close()
+    flash("Slide deleted!", "success")
+    return redirect("/adminpanel")
 
 if __name__ == "__main__":
     init_db()
