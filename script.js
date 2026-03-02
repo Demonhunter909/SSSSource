@@ -6,7 +6,6 @@ function initSlideshow() {
     
     const rotate = () => {
       if (images.length === 0) return;
-      el.onerror = () => { i = (i + 1) % images.length; el.src = images[i]; };
       el.src = images[i];
       i = (i + 1) % images.length;
     };
