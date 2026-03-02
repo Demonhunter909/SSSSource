@@ -80,13 +80,23 @@
         <h4 style="text-align: center;">Your place to read features!</h4>
         <hr class="solid">
         <p style="text-align: center;">Feel free to send in your article at <a href="mailto:thessssource@gmail.com">thessssource@gmail.com</a></p>
-            {% for item in urls %}
-                <div class="url-card">
-                    <h3>{{ item[2] }}</h3>
-                    <p>{{ item[3] }}</p>
-                    <a href="{{ item[1] }}" target="_blank">{{ item[1] }}</a>
-                </div>
-            {% endfor %}
+            <div class="url-card mb-3 p-3 border rounded">
+                <p class="card-title">{{ item[2] }}</p> 
+                <p class="card-description">{{ item[3] }}</p>   
+                <p class="card-url">
+                    <strong>URL:</strong>
+                    <a href="{{ item[1] }}" target="_blank" class="card-link">{{ item[1] }}</a>
+                </p>
+                <p class="card-cover_image">
+                    <strong>Cover Image:</strong>
+                    {% if item[5] %}
+                        <a href="{{ item[1] }}" target="_blank">
+                            <img src="{{ url_for('uploaded_file', filename=item[5]) }}" alt="Cover Image" class="cover-image">
+                        </a>
+                    {% else %}
+                        No cover image
+                    {% endif %}
+                </p>
         </div>
     </body>
 </html>

@@ -75,7 +75,7 @@
         <h4 style="text-align: center;">Welcome, {{ username }}!</h4>
         <hr class="solid">
         <p style="text-align: center;">Upload articles below.</p>
-        <form action="/upload" method="POST">
+        <form action="/upload" method="POST" enctype="multipart/form-data">
             <label>Title:</label>
             <input type="text" name="title" required>
             <label>Description (optional):</label>
@@ -92,6 +92,8 @@
                 <option value="talent">Talent</option>
                 <option value="venom">Venom</option>
             </select>
+            <label>Cover Image:</label>
+            <input type="file" name="cover_image" accept="image/*" required>
             <button type="submit">Upload</button>
         </form>        
         <h2>All Uploaded Content</h2>
@@ -103,6 +105,16 @@
                 <p class="card-url">
                     <strong>URL:</strong>
                     <a href="{{ item[1] }}" target="_blank" class="card-link">{{ item[1] }}</a>
+                </p>
+                <p class="card-cover_image">
+                    <strong>Cover Image:</strong>
+                    {% if item[5] %}
+                        <a href="{{ item[1] }}" target="_blank">
+                            <img src="{{ url_for('uploaded_file', filename=item[5]) }}" alt="Cover Image" class="cover-image">
+                        </a>
+                    {% else %}
+                        No cover image
+                    {% endif %}
                 </p>
                 <p class="card-category"><strong>Category:</strong> <span class="category-badge">{{ item[4] }}</span></p>
                 <div class="card-actions">

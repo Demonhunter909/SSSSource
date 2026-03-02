@@ -1,8 +1,9 @@
 import os
 import psycopg2
 import datetime
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, send_from_directory
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import timedelta
 
@@ -17,6 +18,11 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 # Set to False for development over HTTP, True for HTTPS in production
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-production")
+
+# Configure upload folder
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 @app.before_request
 def make_session_permanent():
@@ -75,7 +81,8 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id INTEGER REFERENCES users(id),
         title TEXT,
-        description TEXT
+        description TEXT,
+        cover_image TEXT
     );
 """)
 
@@ -456,7 +463,7 @@ def adminpanel():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description, category
+        SELECT id, url, title, description, category, cover_image
         FROM uploads
         ORDER BY created_at DESC
     """)
@@ -473,17 +480,22 @@ def upload():
         description = request.form.get("description")
         url = request.form.get("url")
         category = request.form.get("category")
+        image = request.files.get("cover_image")
 
-        if not url or not category or not title:
-            flash("Title, URL and category required", "error")
+        if not url or not category or not title or not image:
+            flash("Title, URL, category and cover image required", "error")
             return redirect("/upload")
+
+        filename = secure_filename(image.filename)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        image.save(path)
 
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO uploads (url, category, user_id, title, description)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (url, category, session["user_id"], title, description))
+            INSERT INTO uploads (url, category, user_id, title, description, cover_image)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (url, category, session["user_id"], title, description, filename))
         conn.commit()
         conn.close()
 
@@ -493,7 +505,7 @@ def upload():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, url, title, description, category
+        SELECT id, url, title, description, category, cover_image
         FROM uploads
         ORDER BY created_at DESC
     """)
@@ -560,7 +572,9 @@ def edit_url(url_id):
 
     return render_template("edit_url.html", item=item, url_id=url_id, username=session.get("username"))
 
-
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 if __name__ == "__main__":
     init_db()
