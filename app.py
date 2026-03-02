@@ -487,9 +487,11 @@ def adminpanel():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
+    cursor.execute("SELECT id, filename FROM slideshow ORDER BY position")
+    slides = cursor.fetchall()
     conn.close()
 
-    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads)
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, slides=slides)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
