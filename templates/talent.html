@@ -83,11 +83,7 @@
         {% for item in urls %}
             <div class="url-card mb-3 p-3 border rounded">
                 <p class="card-title">{{ item[2] }}</p> 
-                <p class="card-description">{{ item[3] }}</p>   
-                <p class="card-url">
-                    <strong>URL:</strong>
-                    <a href="{{ item[1] }}" target="_blank" class="card-link">{{ item[1] }}</a>
-                </p>
+                <p class="card-description">{{ item[3] }}</p>
                 <p class="card-cover_image">
                     <strong>Cover Image:</strong>
                     {% if item[5] %}
