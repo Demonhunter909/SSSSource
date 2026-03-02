@@ -11,42 +11,25 @@ from uuid import uuid4
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
-# Session configuration - use Flask's built-in secure cookies
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_NAME"] = "session"
 app.config["SESSION_REFRESH_EACH_REQUEST"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# Set to False for development over HTTP, True for HTTPS in production
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-2026-change-in-production")
 
-# Configure upload folder (allow override for Render persistent disk)
-# Render mounts persistent disks at /mnt/data by default. If the application
-# is running on Render and the UPLOAD_FOLDER environment variable isn’t set,
-# default to using a subdirectory of that mount point so files survive restarts.
 render_default = None
 if not os.getenv("UPLOAD_FOLDER") and os.getenv("RENDER_INTERNAL_HOSTNAME"):
-    # service is running on Render; use the standard mount location
     render_default = os.path.join("/mnt/data", "uploads")
 
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", render_default or os.path.join(os.getcwd(), "uploads"))
-# ensure the directory exists before Flask tries to write into it
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.logger.info(f"Using upload folder: {UPLOAD_FOLDER}")
 
 SLIDES_DIR = os.path.join(app.config["UPLOAD_FOLDER"], "slideshow")
-# create slideshow directory as well; the parent folder may already exist
 os.makedirs(SLIDES_DIR, exist_ok=True)
-
-# No external storage required when using a Render persistent disk.
-# All files are saved locally under UPLOAD_FOLDER/slideshow.  The
-# `UPLOAD_FOLDER` variable is configured earlier to point at `/mnt/data`
-# when running on Render.
-#
-# Storing on disk keeps the implementation simple and avoids additional
-dependencies.
 
 @app.before_request
 def make_session_permanent():
