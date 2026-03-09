@@ -384,7 +384,7 @@ def logout():
 @app.route("/")
 def index():
     page = int(request.args.get("page", 1))
-    uploads, total_pages = get_paginated_all(page)
+    uploads, total_pages = get_paginated_category("home", page)
 
     slides = []
     if session.get("user_id"):
@@ -400,62 +400,62 @@ def index():
 @app.route("/articles")
 def articles():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("articles", page)
+    uploads, total_pages = get_paginated_category("articles", page)
 
-    return render_template("articles.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("articles.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/venom")
 def venom():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("venom", page)
+    uploads, total_pages = get_paginated_category("venom", page)
 
-    return render_template("venom.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("venom.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/talent")
 def talent():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("talent", page)
+    uploads, total_pages = get_paginated_category("talent", page)
 
-    return render_template("talent.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("talent.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/athletics")
 def athletics():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("athletics", page)
+    uploads, total_pages = get_paginated_category("athletics", page)
 
-    return render_template("athletics.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("athletics.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/entertainment")
 def entertainment():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("entertainment", page)
+    uploads, total_pages = get_paginated_category("entertainment", page)
 
-    return render_template("entertainment.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("entertainment.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/news")
 def news():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("news", page)
+    uploads, total_pages = get_paginated_category("news", page)
 
-    return render_template("news.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("news.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/features")
 def features():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("features", page)
+    uploads, total_pages = get_paginated_category("features", page)
 
-    return render_template("features.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("features.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/about")
 def about():
     page = int(request.args.get("page", 1))
-    urls, total_pages = get_paginated_category("about", page)
+    uploads, total_pages = get_paginated_category("about", page)
     
-    return render_template("about.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
+    return render_template("about.html", uploads=uploads, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/adminpanel")
 @login_required
