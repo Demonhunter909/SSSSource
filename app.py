@@ -138,7 +138,7 @@ def get_paginated_category(category, page, per_page=16):
     cursor.execute("""
         SELECT id, url, title, description, category, cover_image
         FROM uploads
-        WHERE category = ?
+        WHERE category = %s
         ORDER BY created_at DESC
     """, (category,))
     items = cursor.fetchall()
@@ -366,7 +366,7 @@ def logout():
 @app.route("/")
 def index():
     page = int(request.args.get("page", 1))
-    uploads, total_pages = get_paginated_category("index", page)
+    uploads, total_pages = get_paginated_all(page)
 
     slides = []
     if session.get("user_id"):
