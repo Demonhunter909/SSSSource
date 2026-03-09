@@ -82,21 +82,46 @@
         <hr class="solid">
         <h3 style="text-align: center;">Our Members</h3>
         <h4 style="text-align: center;">Take a look below to see who runs and who has run the SSSSource!</h4>
-        {% for item in urls %}
-            <div class="url-card mb-3 p-3 border rounded">
-                <p class="card-title">{{ item[2] }}</p> 
-                <p class="card-description">{{ item[3] }}</p>   
-                <p class="card-cover_image">
-                    <strong>Cover Image:</strong>
-                    {% if item[5] %}
-                        <a href="{{ item[1] }}" target="_blank">
-                            <img src="{{ url_for('uploaded_file', filename=item[5]) }}" alt="Cover Image" class="cover-image">
-                        </a>
-                    {% else %}
-                        No cover image
-                    {% endif %}
-                </p>
+        <div class="container mt-4">
+            <div class="row">
+                {% for item in uploads %}
+                    <div class="col-md-3 mb-4">
+                        <div class="url-card p-3 border rounded h-100">
+                            <p class="card-title">{{ item[2] }}</p>
+                            <p class="card-description">{{ item[3] }}</p>
+                            {% if item[5] %}
+                                <a href="{{ item[1] }}" target="_blank">
+                                    <img src="{{ url_for('uploaded_file', filename=item[5]) }}" alt="Cover Image" class="img-fluid">
+                                </a>
+                            {% else %}
+                                <p>No cover image</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                {% for p in range(1, total_pages + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
     </body>
 </html>

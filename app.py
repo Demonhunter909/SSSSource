@@ -490,23 +490,40 @@ def about():
     
     return render_template("about.html", urls=urls, username=session.get("username"))
 
-
 @app.route("/adminpanel")
 @login_required
 def adminpanel():
+    page = int(request.args.get("page", 1))
+    per_page = 16
+
     conn = get_db()
     cursor = conn.cursor()
+
     cursor.execute("""
         SELECT id, url, title, description, category, cover_image
         FROM uploads
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
+
+    total_pages = math.ceil(len(uploads) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+
     cursor.execute("SELECT id, filename FROM slideshow")
     slides = cursor.fetchall()
+
     conn.close()
 
-    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, slides=slides)
+    return render_template(
+        "adminpanel.html",
+        uploads=uploads[start:end],
+        page=page,
+        total_pages=total_pages,
+        username=session.get("username"),
+        slides=slides
+    )
+
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
