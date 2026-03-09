@@ -366,7 +366,7 @@ def logout():
 @app.route("/")
 def index():
     page = int(request.args.get("page", 1))
-    uploads, total_pages = get_paginated_category(page)
+    uploads, total_pages = get_paginated_category("index", page)
 
     slides = []
     if session.get("user_id"):
@@ -443,7 +443,7 @@ def about():
 @login_required
 def adminpanel():
     page = int(request.args.get("page", 1))
-    uploads, total_pages = get_paginated_category(page)
+    uploads, total_pages = get_paginated_all(page)
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id, filename FROM slideshow")
