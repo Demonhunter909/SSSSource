@@ -131,6 +131,26 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
+def get_paginated_category(category, page, per_page=16):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, url, title, description, category, cover_image
+        FROM uploads
+        WHERE category = ?
+        ORDER BY created_at DESC
+    """, (category,))
+    items = cursor.fetchall()
+    conn.close()
+
+    total_pages = math.ceil(len(items) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    return items[start:end], total_pages
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -345,184 +365,91 @@ def logout():
 
 @app.route("/")
 def index():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads
-        ORDER BY created_at DESC
-    """)
-    uploads = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    uploads, total_pages = get_paginated_category(page)
 
+    slides = []
     if session.get("user_id"):
-        conn2 = get_db()
-        cur2 = conn2.cursor()
-        cur2.execute("SELECT id, filename FROM slideshow")
-        slides = cur2.fetchall()
-        conn2.close()
-        return render_template("adminpanel.html", username=session["username"], uploads=uploads, slides=slides)
-    
-    return render_template("index.html", uploads=uploads, username=session.get("username"))
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, filename FROM slideshow")
+        slides = cursor.fetchall()
+        conn.close()
+
+    return render_template("index.html", uploads=uploads, page=page, total_pages=total_pages, slides=slides, username=session.get("username"))
 
 
 @app.route("/articles")
 def articles():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'articles' 
-        ORDER BY created_at DESC
-        """)    
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("articles", page)
 
-    return render_template("articles.html", urls=urls, username=session.get("username"))
+    return render_template("articles.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/venom")
 def venom():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'venom' 
-        ORDER BY created_at DESC
-        """)    
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("venom", page)
 
-    return render_template("venom.html", urls=urls, username=session.get("username"))
+    return render_template("venom.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/talent")
 def talent():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'talent' 
-        ORDER BY created_at DESC
-        """)    
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("talent", page)
 
-    return render_template("talent.html", urls=urls, username=session.get("username"))
+    return render_template("talent.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/athletics")
 def athletics():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'athletics' 
-        ORDER BY created_at DESC
-        """)    
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("athletics", page)
 
-    return render_template("athletics.html", urls=urls, username=session.get("username"))
+    return render_template("athletics.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/entertainment")
 def entertainment():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'entertainment' 
-        ORDER BY created_at DESC
-        """)    
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("entertainment", page)
 
-    return render_template("entertainment.html", urls=urls, username=session.get("username"))
+    return render_template("entertainment.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/news")
 def news():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'news' 
-        ORDER BY created_at DESC
-        """)    
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("news", page)
 
-    return render_template("news.html", urls=urls, username=session.get("username"))
+    return render_template("news.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 
 @app.route("/features")
 def features():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads 
-        WHERE category = 'features' 
-        ORDER BY created_at DESC
-        """)
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("features", page)
 
-    return render_template("features.html", urls=urls, username=session.get("username"))
+    return render_template("features.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/about")
 def about():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads
-        WHERE category = 'about'
-        ORDER BY created_at DESC
-    """)
-    urls = cursor.fetchall()
-    conn.close()
+    page = int(request.args.get("page", 1))
+    urls, total_pages = get_paginated_category("about", page)
     
-    return render_template("about.html", urls=urls, username=session.get("username"))
+    return render_template("about.html", urls=urls, page=page, total_pages=total_pages, username=session.get("username"))
 
 @app.route("/adminpanel")
 @login_required
 def adminpanel():
     page = int(request.args.get("page", 1))
-    per_page = 16
-
+    uploads, total_pages = get_paginated_category(page)
     conn = get_db()
     cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT id, url, title, description, category, cover_image
-        FROM uploads
-        ORDER BY created_at DESC
-    """)
-    uploads = cursor.fetchall()
-
-    total_pages = math.ceil(len(uploads) / per_page)
-    start = (page - 1) * per_page
-    end = start + per_page
-
     cursor.execute("SELECT id, filename FROM slideshow")
     slides = cursor.fetchall()
-
     conn.close()
-
-    return render_template(
-        "adminpanel.html",
-        uploads=uploads[start:end],
-        page=page,
-        total_pages=total_pages,
-        username=session.get("username"),
-        slides=slides
-    )
+    return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, page=page, total_pages=total_pages, slides=slides)
 
 
 @app.route("/upload", methods=["GET", "POST"])
