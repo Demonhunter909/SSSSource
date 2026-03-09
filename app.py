@@ -150,6 +150,23 @@ def get_paginated_category(category, page, per_page=16):
 
     return items[start:end], total_pages
 
+def get_paginated_all(page, per_page=16):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, url, title, description, category, cover_image
+        FROM uploads
+        ORDER BY created_at DESC
+    """)
+    items = cursor.fetchall()
+    conn.close()
+
+    total_pages = math.ceil(len(items) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    return items[start:end], total_pages
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
