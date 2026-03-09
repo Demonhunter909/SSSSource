@@ -475,6 +475,22 @@ def features():
 
     return render_template("features.html", urls=urls, username=session.get("username"))
 
+@app.route("/about")
+def about():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, url, title, description, category, cover_image
+        FROM uploads
+        WHERE category = 'about'
+        ORDER BY created_at DESC
+    """)
+    urls = cursor.fetchall()
+    conn.close()
+    
+    return render_template("about.html", urls=urls, username=session.get("username"))
+
+
 @app.route("/adminpanel")
 @login_required
 def adminpanel():

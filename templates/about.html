@@ -5,7 +5,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <link href="/styles.css" rel="stylesheet">
-        <title>SSSSource | Posts</title>
+        <title>SSSSource | About</title>
         <script src="/script.js"></script>
         <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,19 +49,14 @@
                             <li><a class="dropdown-item" href="https://sites.google.com/view/thessssource-com/home?authuser=3">Google Site</a></li>
                             <li><a class="dropdown-item" href="https://thessssource.weebly.com/">Weebly Site</a></li>
                         </ul>
-                    </li> 
+                  </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Account
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                            {% if username %}
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout ({{ username }})</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('adminpanel') }}">Admin Panel</a></li>
-                            {% else %}
-                                <li><a class="dropdown-item" href="{{ url_for('login') }}">Login</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('register') }}">Register</a></li>
-                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout ({{ username }})</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('adminpanel') }}">Admin Panel</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -79,10 +74,12 @@
             {% endif %}
         {% endwith %}
         <img id="slideshow" src="/images/ssssource.jpg" alt="The SSSSource Logo" width="300" style="display: block; margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px;">
-        <h1 style="text-align: center;">Welcome to the features page!</h1>
-        <h4 style="text-align: center;">Your place to read features!</h4>
+        <h1 style="text-align: center;">Welcome to the About Page!</h1>
+        <h4 style="text-align: center;">This is where you can learn more about The SSSSource and our mission.</h4>
         <hr class="solid">
-        <p style="text-align: center;">Feel free to send in your article at <a href="mailto:thessssource@gmail.com">thessssource@gmail.com</a></p>
+        <p style="text-align: center;">Our goal is to provide a creative outlet for students to express their opinions and feelings regarding both school and our ever-evolving society. We feel that creativity and self-expression could be more encouraged in today's world so we wanted to allow a safe space for VAAS students to be themselves through both writing and arts. ​Through spreading news about issues within the VAAS campus, creating art pieces for the website, and encouraging being true to oneself, we believe that this will make our school a more open and expressive community, which will hopefully carry into students' adult years. </p>
+        <h3 style="text-align: center;">Our Members</h3>
+        <h4 style="text-align: center;">Take a look below to see who runs and who has run the SSSSource!</h4>
         {% for item in urls %}
             <div class="url-card mb-3 p-3 border rounded">
                 <p class="card-title">{{ item[2] }}</p> 
