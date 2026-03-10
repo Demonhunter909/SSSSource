@@ -612,7 +612,7 @@ def slideshow_upload():
 
     # Secure + unique filename
     filename = secure_filename(slide.filename)
-    unique_name = f"slideshow/{uuid4()}-{filename}"
+    unique_name = f"slideshow/{int(time.time())}-{filename}"
 
     # Read file bytes
     file_bytes = slide.read()
