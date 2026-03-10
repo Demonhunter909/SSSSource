@@ -9,6 +9,11 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import timedelta
 from uuid import uuid4
+from supabase import create_client, Client
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -484,22 +489,41 @@ def upload():
             flash("Title, URL, category and cover image required", "error")
             return redirect("/upload")
 
+        # Secure filename
         filename = secure_filename(image.filename)
-        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        image.save(path)
+        unique_name = f"{uuid4()}-{filename}"
 
+        # Read file bytes
+        file_bytes = image.read()
+
+        # Upload to Supabase Storage bucket named "uploads"
+        result = supabase.storage.from_("uploads").upload(
+            unique_name,
+            file_bytes
+        )
+
+        # Handle upload error
+        if isinstance(result, dict) and "error" in result:
+            flash("Failed to upload image to storage", "error")
+            return redirect("/upload")
+
+        # Get public URL
+        public_url = supabase.storage.from_("uploads").get_public_url(unique_name)
+
+        # Save metadata + public image URL in Neon DB
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO uploads (url, category, user_id, title, description, cover_image)
             VALUES (%s, %s, %s, %s, %s, %s)
-        """, (url, category, session["user_id"], title, description, filename))
+        """, (url, category, session["user_id"], title, description, public_url))
         conn.commit()
         conn.close()
 
         flash("URL uploaded successfully!", "success")
         return redirect(f"/{category}")
 
+    # GET request: load existing uploads + slideshow
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -508,12 +532,13 @@ def upload():
         ORDER BY created_at DESC
     """)
     uploads = cursor.fetchall()
+
     cursor.execute("SELECT id, filename FROM slideshow")
     slides = cursor.fetchall()
     conn.close()
 
     return render_template("adminpanel.html", username=session.get("username"), uploads=uploads, slides=slides)
-    
+  
 @app.route("/delete-url/<int:url_id>")
 @login_required
 def delete_url(url_id):
@@ -578,22 +603,46 @@ def uploaded_file(filename):
 
 @app.route("/admin/slideshow", methods=["POST"])
 @login_required
-def upload_slide():
-    file = request.files.get("slide")
-    if not file:
-        flash("No file uploaded", "error")
-        return redirect("/adminpanel")
-    
-    fname = f"{int(time.time())}_{secure_filename(file.filename)}"
-    file.save(os.path.join(SLIDES_DIR, fname))
+def slideshow_upload():
+    slide = request.files.get("slide")
 
+    if not slide:
+        flash("No slide uploaded", "error")
+        return redirect("/adminpanel")
+
+    # Secure + unique filename
+    filename = secure_filename(slide.filename)
+    unique_name = f"slideshow/{uuid4()}-{filename}"
+
+    # Read file bytes
+    file_bytes = slide.read()
+
+    # Upload to Supabase bucket "uploads"
+    result = supabase.storage.from_("uploads").upload(
+        unique_name,
+        file_bytes
+    )
+
+    if isinstance(result, dict) and "error" in result:
+        flash("Failed to upload slide to storage", "error")
+        return redirect("/adminpanel")
+
+    # Get public URL
+    public_url = supabase.storage.from_("uploads").get_public_url(unique_name)
+
+    # Save URL in your slideshow table
     conn = get_db()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO slideshow (filename) VALUES (%s)", (fname,))
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO slideshow (filename)
+        VALUES (%s)
+    """, (public_url,))
     conn.commit()
     conn.close()
-    flash("Slide uploaded!", "success")
+
+    flash("Slide added successfully!", "success")
     return redirect("/adminpanel")
+
 
 @app.route("/slideshow-images")
 def slideshow_images():
@@ -602,7 +651,8 @@ def slideshow_images():
     cur.execute("SELECT filename FROM slideshow")
     rows = cur.fetchall()
     conn.close()
-    return jsonify([url_for("uploaded_file", filename=f"slideshow/{r[0]}") for r in rows])
+
+    return jsonify([r[0] for r in rows])
 
 @app.route("/admin/delete-slide/<int:slide_id>", methods=["POST"])
 @login_required
@@ -611,13 +661,20 @@ def delete_slide(slide_id):
     cur = conn.cursor()
     cur.execute("SELECT filename FROM slideshow WHERE id = %s", (slide_id,))
     row = cur.fetchone()
+
     if row:
+        public_url = row[0]
         try:
-            os.remove(os.path.join(SLIDES_DIR, row[0]))
-        except OSError:
-            pass
+            path = public_url.split("/object/public/uploads/")[1]
+        except IndexError:
+            path = None
+
+        if path:
+            supabase.storage.from_("uploads").remove([path])
+
         cur.execute("DELETE FROM slideshow WHERE id = %s", (slide_id,))
         conn.commit()
+
     conn.close()
     flash("Slide deleted!", "success")
     return redirect("/adminpanel")

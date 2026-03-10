@@ -128,7 +128,7 @@
                             <p class="card-description">{{ item[3] }}</p>
                             {% if item[5] %}
                                 <a href="{{ item[1] }}" target="_blank">
-                                    <img src="{{ url_for('uploaded_file', filename=item[5]) }}" alt="Cover Image" class="img-fluid">
+                                    <img src="{{ item[5] }}" alt="Cover Image" class="img-fluid">
                                 </a>
                             {% else %}
                                 <p>No cover image</p>
