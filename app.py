@@ -521,7 +521,10 @@ def upload():
         conn.close()
 
         flash("URL uploaded successfully!", "success")
-        return redirect(f"/{category}")
+        if category == "home":
+            return redirect("/")
+        else:
+            return redirect(f"/{category}")
 
     # GET request: load existing uploads + slideshow
     conn = get_db()
@@ -560,7 +563,10 @@ def delete_url(url_id):
     conn.close()
 
     flash("URL deleted", "success")
-    return redirect(f"/{category}")
+    if category == "home":
+        return redirect("/")
+    else:
+        return redirect(f"/{category}")
 
 @app.route("/edit-url/<int:url_id>", methods=["GET", "POST"])
 @login_required
@@ -589,7 +595,10 @@ def edit_url(url_id):
         conn.close()
 
         flash("URL updated!", "success")
-        return redirect(f"/{category}")
+        if category == "home":
+            return redirect("/")
+        else:
+            return redirect(f"/{category}")
 
     cursor.execute("SELECT title, description, url FROM uploads WHERE id = %s", (url_id,))
     item = cursor.fetchone()
