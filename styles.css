@@ -39,12 +39,8 @@ body {
     object-fit:cover;
 }
 
-h1, h4 {
-    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-}
-
-p {
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+h1, h2, h4, p {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
 @media (max-width: 768px) {
